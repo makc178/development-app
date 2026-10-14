@@ -1,6 +1,6 @@
 'use strict';
 /* Development App — код без данных. Данные: закрытый репозиторий DATA_REPO, ключ GitHub хранится на устройстве, зашифрован PIN-кодом. */
-const DATA_REPO = 'makc178/claims-registry-data', DATA_FILE = 'devapp/bundle.json', PIN_BLOB = {"v": 1, "bv": 1792016671, "kdf": "PBKDF2-SHA256", "iterations": 600000, "salt": "0a7I8PZZpFMdemXFMGy+Kg==", "iv": "bixVflIcLOQaS81F", "ct": "mfV/3sAn5dDxRApGeM38oK9mNVix4xW9Cx8n542KkAateZ18+LXdjPKEaZqXgeqnSXSBffIHW2cuyVYG7J2H3fPbng1snUd5/02CZ9c0ZXbVeQgmiCgJsqj5oNOTKsacKSt9Mr5zALn3ySeoxGV/X5fT590="}, LT = {"bg": "#14213D", "digit": "#EFE6D2", "border": "#C9A45C", "dot": "#C9A45C", "glass": "rgba(255,255,255,.06)", "glass_active": "rgba(201,164,92,.18)", "button_px": 72, "logo_text": "MI Development", "error": "#E8A39B", "logo_src": "logo.svg", "logo_w": 96, "logo_gap": 32};
+const DATA_REPO = 'makc178/claims-registry-data', DATA_FILE = 'devapp/bundle.json', PIN_BLOB = {"v": 1, "bv": 1792017019, "kdf": "PBKDF2-SHA256", "iterations": 600000, "salt": "QTGdKLByzMsnJwWDwDIw1g==", "iv": "zcydfxt83ll8kcEW", "ct": "KeONKlDJV8xTImgtCczatPnSjaj4vniIXWU+7m82VE+cGs9R2WxvYV7W0tBDk7n4hkKSGEhtNEWDPf4IX5XsRz9OYMvldi0cM9VtiWHmIedUWxalrUpGOZScxO/1n9Vk3BvrcOSXGDghCS+7iNCmODGu5Fw="}, LT = {"bg": "#14213D", "digit": "#EFE6D2", "border": "#C9A45C", "dot": "#C9A45C", "glass": "rgba(255,255,255,.06)", "glass_active": "rgba(201,164,92,.18)", "button_px": 72, "logo_text": "MI Development", "error": "#E8A39B", "logo_src": "logo.svg", "logo_w": 96, "logo_gap": 32};
 const $ = s => document.querySelector(s), A = $('#app');
 const esc = s => String(s ?? '').replace(/[&<>"']/g, c => ({'&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;'}[c]));
 const nf = (n, d = 0) => (n == null || !isFinite(n)) ? '—' : n.toLocaleString('ru-RU', {maximumFractionDigits: d, minimumFractionDigits: 0});
@@ -66,8 +66,14 @@ function groupOf(d) {
 const G = id => C.decision_groups.find(g => g.id === id);
 const chipG = g => `<span class="chip solid" style="background:${g.color}">${esc(g.label)}</span>`;
 const tagName = t => (C.reason_tags[t] || {}).name || t;
-const adrChip = d => { const a = (C.address_sources || {})[d.address_source]; return a && a.chip ? ` <span class="chip ach" title="${esc(a.title)}">${esc(a.chip)}</span>` : ''; };
-const adrMiss = () => `<span class="na">${esc(C.address_missing)}</span>`;
+const dom = u => { try { return new URL(u).hostname.replace(/^www\./, ''); } catch (e) { return ''; } };
+const adrChip = d => { const a = (C.address_sources || {})[d.address_source]; if (!a || !a.chip) return '';
+  if (d.address_source === 'media' && d.addr_url) return ` <a class="chip ach med" href="${esc(d.addr_url)}" target="_blank" rel="noopener" title="${esc(a.title.replace('{domain}', dom(d.addr_url)))}" onclick="event.stopPropagation()">${esc(a.chip)}<svg width="10" height="10" viewBox="0 0 10 10" aria-hidden="true"><path d="M3 1.5h5.5V7M8.5 1.5 1.5 8.5" fill="none" stroke="currentColor" stroke-width="1.4"/></svg></a>`;
+  return ` <span class="chip ach" title="${esc(a.title.replace('{domain}', ''))}">${esc(a.chip)}</span>`; };
+const protoTxt = d => d.proto ? '№ ' + esc(d.proto) : esc(C.proto_missing || '№ не указан');
+const adrSummary = () => { const A = C.address_sources || {}, n = k => B.decisions.filter(d => d.address_source === k).length;
+  return esc(C.address_summary_label || 'Адрес:') + ' ' + ['protocol', 'cadastre', 'media', 'none'].concat(n('analyst') ? ['analyst'] : []).map(k => `${esc(A[k]?.count || k)} ${n(k)}`).join(' · '); };
+const adrMiss = () => `<span class="adn">${esc(C.address_missing)}</span>`;
 const approvedLater = d => (d.rres || '').toLowerCase().startsWith(C.reconsidered_approved_prefix);
 
 /* ---------- экраны ---------- */
@@ -123,9 +129,10 @@ function draw() {
 function drawList() {
   const L = filtered(false).sort((a, b) => b.sort.localeCompare(a.sort));
   $('#lcap').textContent = `Решения · ${L.length} из ${B.decisions.length}`;
+  if (!$('#adrs')) $('#lcap').insertAdjacentHTML('afterend', '<div id="adrs" class="sm mu" style="margin:-2px 0 8px"></div>'); $('#adrs').innerHTML = adrSummary();
   $('#ls').innerHTML = L.length ? L.map(d => { const g = groupOf(d);
     return `<div class="card dc" data-id="${d.id}"><div class="top">${chipG(g)}<span class="chip">${esc(d.organ)}</span><span class="sm mu">${esc(d.date.replace(/ \(.*/, ''))}</span>${approvedLater(d) ? '<span class="chip" style="background:#EAF3FF;color:#0060C7">позже одобрено</span>' : ''}</div>
-    <div class="pn">Протокол ${d.proto ? '№ ' + esc(d.proto) : 'без номера'} · ${esc(d.organ)} · ${esc(d.date.replace(/ \(.*/, ''))}</div>
+    <div class="pn">Протокол ${protoTxt(d)} · ${esc(d.organ)} · ${esc(d.date.replace(/ \(.*/, ''))}</div>
     <div class="adr">${d.address ? esc(d.address) + adrChip(d) : adrMiss()}</div>${d.cad ? `<div class="cadn">${esc(d.cad)}</div>` : ''}
     <div class="dev">${esc(d.dev) || '<span class="na">Застройщик не указан</span>'}</div>
     ${d.tags.length ? `<div class="chips" style="margin-top:8px">${d.tags.map(t => `<span class="chip">${t} · ${esc(tagName(t))}</span>`).join('')}</div>` : ''}
@@ -136,7 +143,7 @@ function detail(d) {
   const g = groupOf(d), row = (k, v) => v ? `<div class="li"><span>${k}</span><span>${v}</span></div>` : '';
   $('#sh').innerHTML = `<div class="sheet"><div><div class="grab"></div><button class="close" aria-label="Закрыть">✕</button>
   <div class="top" style="display:flex;gap:6px;flex-wrap:wrap;margin-top:6px">${chipG(g)}<span class="chip">${esc(d.organ)}</span></div>
-  <div class="pn" style="margin-top:10px">Протокол ${d.proto ? '№ ' + esc(d.proto) : 'без номера'} · ${esc(d.date)}</div><h1 class="adr" style="font-size:22px;line-height:28px;margin-top:4px">${d.address ? esc(d.address) + adrChip(d) : adrMiss()}</h1>${d.cad ? `<div class="cadn">${esc(d.cad)}</div>` : ''}${d.address_source && C.address_sources[d.address_source] ? `<div class="sm mu">${esc(C.address_sources[d.address_source].title)}</div>` : ''}
+  <div class="pn" style="margin-top:10px">Протокол ${protoTxt(d)} · ${esc(d.date)}</div><h1 class="adr" style="font-size:22px;line-height:28px;margin-top:4px">${d.address ? esc(d.address) + adrChip(d) : adrMiss()}</h1>${d.cad ? `<div class="cadn">${esc(d.cad)}</div>` : ''}${d.address_source && C.address_sources[d.address_source] ? `<div class="sm mu">${esc(C.address_sources[d.address_source].title)}</div>` : ''}
   ${g.hint ? `<div class="sm mu">${esc(g.hint)}</div>` : ''}
   <div class="cap">Заявка</div><div class="list kv">${row('Дата', esc(d.date))}${row('Застройщик', esc(d.dev))}${row('Район', esc(d.district))}${row('Кадастровый №', esc(d.cad))}
   ${row('Площадь участка', d.plot && esc(d.plot) + ' м²')}${row('Площадь объекта', d.area && esc(d.area) + ' м²')}${row('Этажность', esc(d.floors))}${row('КИТ', esc(d.kit))}${row('Функция', esc(d.func))}${row('Зона ПЗЗ', esc(d.pzz))}</div>
@@ -285,18 +292,19 @@ function sensAt(V, key, pr) {
   for (let i = 0; i < pts.length - 1; i++) if (pr >= pts[i][0] && pr <= pts[i + 1][0]) { const t = (pr - pts[i][0]) / (pts[i + 1][0] - pts[i][0]); return {land: pts[i][1] + t * (pts[i + 1][1] - pts[i][1]), interp: true}; }
   return null;
 }
-function fmTable(V) {
+function fmTable(V, part) {
   const F = V.finmodel; if (!F) return '';
   const nrm = x => x.norm ? ' <span class="nrm">норматив</span>' : '';
   const sec = n => F.items.filter(x => x.section === n);
   const rows = n => sec(n).map(x => `<tr><td>${esc(x.name)}${nrm(x)}</td><td class="fp">${esc(x.parameter || '')}</td><td>${nf(x.amount_mln_rub, 1)}</td></tr>`).join('');
   const T = F.totals || {};
-  return `<div class="tw"><table class="tt fm"><thead><tr><th>Статья</th><th>Единичный параметр</th><th>Сумма, млн ₽</th></tr></thead><tbody>
+  const tbl = `<div class="tw"><table class="tt fm"><thead><tr><th>Статья</th><th>Единичный параметр</th><th>Сумма, млн ₽</th></tr></thead><tbody>
    <tr class="fs"><td colspan="3">Выручка</td></tr>${rows('Выручка')}<tr class="ft"><td colspan="2">Выручка, итого</td><td>${nf(T.revenue_mln_rub, 1)}</td></tr>
    <tr class="fs"><td colspan="3">Затраты</td></tr>${rows('Затраты')}<tr class="ft"><td colspan="2">Затраты, итого</td><td>${nf(T.costs_mln_rub, 1)}</td></tr>
-   <tr class="ft"><td colspan="2">Прибыль${T.margin != null ? ' (маржа ' + nf(T.margin * 100, 1) + '%)' : ''}</td><td>${nf(T.profit_mln_rub, 1)}</td></tr></tbody></table></div>
-  <div class="cap">Денежный поток по годам, ${esc(F.units || 'млн ₽')}</div>${fmBars(F)}${F.cashflow_note ? `<div class="sm mu">${esc(F.cashflow_note)}</div>` : ''}
+   <tr class="ft"><td colspan="2">Прибыль${T.margin != null ? ' (маржа ' + nf(T.margin * 100, 1) + '%)' : ''}</td><td>${nf(T.profit_mln_rub, 1)}</td></tr></tbody></table></div>`;
+  const tail = `<div class="cap">Денежный поток по годам, ${esc(F.units || 'млн ₽')}</div>${fmBars(F)}${F.cashflow_note ? `<div class="sm mu">${esc(F.cashflow_note)}</div>` : ''}
   ${(F.assumptions || []).length ? `<div class="cap">Допущения</div><div class="tw"><table class="tt kv2"><tbody>${F.assumptions.map(a => `<tr><td>${esc(a.name)}${a.norm ? ' <span class="nrm">норматив</span>' : ''}</td><td>${esc(a.value)}</td></tr>`).join('')}</tbody></table></div>` : ''}`;
+return part === 1 ? tbl : part === 2 ? tail : tbl + tail;
 }
 function fmBars(F) {
   const Y = F.cashflow_annual || []; if (!Y.length) return '';
@@ -439,7 +447,7 @@ function report(p, opt = {}) {
     <h3>Решения ГРК и АГП${p.grk_note ? ' · ' + esc(p.grk_note) : ''}</h3>${dec.length ? `<table class="tt kv2"><tbody>${dec.map(x => `<tr><td>${esc(x.organ)} · ${esc(x.date)}</td><td>${esc(groupOf(x).label)} · ${esc(x.dev)}${x.quote ? ': «' + esc(x.quote) + '»' : ''}</td></tr>`).join('')}</tbody></table>` : '<p class="na">Решений по участку в базе нет</p>'}
 `,
    `<h2>Нормативы и источники</h2><table class="tt kv2"><tbody>${R.norms.map(([a, b, c]) => `<tr><td>${esc(a)}</td><td>${esc(b)}<div class="mu">${esc(c)}</div></td></tr>`).join('')}</tbody></table>
-    <h2>Финмодель${bs ? ' · ' + esc(bs.title) : ''}</h2><table class="tt"><thead><tr><th>Выручка</th><th>Затраты</th><th>Прибыль</th></tr></thead><tbody><tr>${['rev', 'costs', 'profit'].map(k => `<td>${V && V.summary[k] != null ? mln(V.summary[k]) : na}</td>`).join('')}</tr></tbody></table>${V ? `<p class="sm mu">${esc(V.status)}</p>` : ''}`].concat(V && V.finmodel ? [`<h2>Приложение. Базовая финмодель</h2><p class="sm mu">${esc((V.list.find(s => s.key === V.finmodel.scenario) || {}).title || '')} · ${esc(V.status)}</p>${fmTable(V)}`] : []);
+    <h2>Финмодель${bs ? ' · ' + esc(bs.title) : ''}</h2><table class="tt"><thead><tr><th>Выручка</th><th>Затраты</th><th>Прибыль</th></tr></thead><tbody><tr>${['rev', 'costs', 'profit'].map(k => `<td>${V && V.summary[k] != null ? mln(V.summary[k]) : na}</td>`).join('')}</tr></tbody></table>${V ? `<p class="sm mu">${esc(V.status)}</p>` : ''}`].concat(V && V.finmodel ? [`<h2>Приложение. Базовая финмодель</h2><p class="sm mu">${esc((V.list.find(s => s.key === V.finmodel.scenario) || {}).title || '')} · ${esc(V.status)}</p>${fmTable(V, 1)}`, `<h2>Приложение. Базовая финмодель (окончание)</h2>${fmTable(V, 2)}`] : []);
   const ft = (i) => `<div class="pf" style="font-size:${R.footer_px}px;color:${R.footer_color}">${LOGO_H ? `<img src="logo-h-dark.svg" alt="MI Development" style="height:12px">` : `<span class="logo-slot">${esc(R.logo_slot)}</span>`}<span>${i + 1} / ${pages.length}</span></div>`;
   let el = $('#print'); if (!el) { el = document.createElement('div'); el.id = 'print'; document.body.appendChild(el); }
   el.innerHTML = pages.map((h, i) => `<section class="pg">${opt.sample ? '<div class="wm">ПРИМЕР</div>' : ''}${h}${ft(i)}</section>`).join('');
