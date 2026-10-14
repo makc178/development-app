@@ -66,4 +66,20 @@ a{color:#007AFF;text-decoration:none}
 .out .li>span:last-child{font-size:16px}.warn{color:#B25E00;font-size:13px;margin-top:8px}
 .empty{text-align:center;color:#8E8E93;padding:28px 10px;font-size:14px}
 .chk{display:flex;align-items:center;gap:8px}.chk input{width:22px;height:22px;accent-color:#007AFF}
+.tab{display:none}@media(min-width:768px){.mob{display:none}.tab{display:block}}
+.tt{width:100%;border-collapse:collapse;font-size:12px}.tt th,.tt td{padding:6px 5px;border-bottom:.5px solid rgba(60,60,67,.15);text-align:right;vertical-align:top}
+.tt th{font-weight:600;font-size:11px;color:#3C3C43}.tt td:first-child,.tt th:first-child{text-align:left;color:#6C6C70}.tt.kv2 td:last-child{text-align:left;color:#1C1C1E}
+#print{display:none}
+@page{size:A4;margin:0}
+@media print{body{background:#fff;padding:0}body.printing>*:not(#print){display:none!important}body.printing #print{display:block}
+.pg{width:210mm;height:297mm;padding:18mm 16mm 18mm;position:relative;overflow:hidden;page-break-after:always;break-after:page;background:#fff;font-family:"SF Pro Text","SF Pro Display",Inter,-apple-system,sans-serif;font-size:11pt;color:#1C1C1E}
+.pg:last-child{page-break-after:auto;break-after:auto}
+.pg h2{font-size:17pt;font-weight:700;letter-spacing:-.02em;margin:0 0 8px}.pg h2:not(:first-child){margin-top:20px}.pg h3{font-size:11pt;font-weight:600;margin:14px 0 6px}
+.pg .tt{font-size:9pt}.pg .tt th{font-size:8.5pt}.pg p{margin:4px 0}
+.cov{position:absolute;left:16mm;right:16mm;top:90mm}.cov .pc{font-size:30pt;font-weight:700;letter-spacing:-.02em;margin:8px 0 6px}.cov .pa{font-size:14pt;margin-bottom:8px}
+.tl2{display:flex;align-items:center;gap:8px;font-size:13pt;margin:6px 0 4px}.tl2 i{width:14px;height:14px;border-radius:7px;display:inline-block}
+.pf{position:absolute;left:16mm;right:16mm;bottom:9mm;display:flex;justify-content:space-between;align-items:center}
+.logo-slot{font-weight:600;letter-spacing:.06em;text-transform:uppercase}
+.wm{position:absolute;left:0;right:0;top:120mm;text-align:center;font-size:96pt;font-weight:700;color:rgba(255,59,48,.13);transform:rotate(-30deg);pointer-events:none}
+.chip{-webkit-print-color-adjust:exact;print-color-adjust:exact}.tl2 i{-webkit-print-color-adjust:exact;print-color-adjust:exact}}
 </style></head><body><div id="app"></div><script src="app.js"></script></body></html>
