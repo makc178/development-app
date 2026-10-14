@@ -1,6 +1,6 @@
 'use strict';
 /* Development App — код без данных. Данные: закрытый репозиторий DATA_REPO, ключ GitHub хранится на устройстве, зашифрован PIN-кодом. */
-const DATA_REPO = 'makc178/claims-registry-data', DATA_FILE = 'devapp/bundle.json', PIN_BLOB = {"v": 1, "bv": 1792018081, "kdf": "PBKDF2-SHA256", "iterations": 600000, "salt": "LPh0aSrF+qM/8ds7KnKr+g==", "iv": "Y/8EFAR7+uBHuA9p", "ct": "kq0jX7Mp1q+TBOY4taLeWIUvi+vifX2dgx0SBkXGErXdi8GwgRw40KdD4Jr6jhi+NVQDHP4q4/2tjE3dJ/8vc93eqZoux46iyl2JheaaXKu8STwUbpRDmqeYiXYE7HH7zqVoBNvkTcmCrpBMFxYLmoxVQtE="}, LT = {"bg": "#14213D", "digit": "#EFE6D2", "border": "#C9A45C", "dot": "#C9A45C", "glass": "rgba(255,255,255,.06)", "glass_active": "rgba(201,164,92,.18)", "button_px": 72, "logo_text": "MI Development", "error": "#E8A39B", "logo_src": "logo.svg", "logo_w": 96, "logo_gap": 32};
+const DATA_REPO = 'makc178/claims-registry-data', DATA_FILE = 'devapp/bundle.json', PIN_BLOB = {"v": 1, "bv": 1792018561, "kdf": "PBKDF2-SHA256", "iterations": 600000, "salt": "aLWzuT1uaOERe9hykXVyaw==", "iv": "a7SPrEGGb2zL9vIO", "ct": "F2czq2nKGTtDgJekvDu6C2Fxt3A9oKMbNk/5BrLfSLYRqBDPl+ALNbqoydg/MWV/wo1lYxo2htEaPUP1aaUMl48FQORkugqs4Aw/zA5r5Rok7t7ZzjM1Wf/MF4K6xR+ztZ3jbwD2dZ5pSoXEP7Ek0MP3oKk="}, LT = {"bg": "#14213D", "digit": "#EFE6D2", "border": "#C9A45C", "dot": "#C9A45C", "glass": "rgba(255,255,255,.06)", "glass_active": "rgba(201,164,92,.18)", "button_px": 72, "logo_text": "MI Development", "error": "#E8A39B", "logo_src": "logo.svg", "logo_w": 96, "logo_gap": 32};
 const $ = s => document.querySelector(s), A = $('#app');
 const esc = s => String(s ?? '').replace(/[&<>"']/g, c => ({'&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;'}[c]));
 const nf = (n, d = 0) => (n == null || !isFinite(n)) ? '—' : n.toLocaleString('ru-RU', {maximumFractionDigits: d, minimumFractionDigits: 0});
@@ -70,6 +70,15 @@ const dom = u => { try { return new URL(u).hostname.replace(/^www\./, ''); } cat
 const adrChip = d => { const a = (C.address_sources || {})[d.address_source]; if (!a || !a.chip) return '';
   if (d.address_source === 'media' && d.addr_url) return ` <a class="chip ach med" href="${esc(d.addr_url)}" target="_blank" rel="noopener" title="${esc(a.title.replace('{domain}', dom(d.addr_url)))}" onclick="event.stopPropagation()">${esc(a.chip)}<svg width="10" height="10" viewBox="0 0 10 10" aria-hidden="true"><path d="M3 1.5h5.5V7M8.5 1.5 1.5 8.5" fill="none" stroke="currentColor" stroke-width="1.4"/></svg></a>`;
   return ` <span class="chip ach" title="${esc(a.title.replace('{domain}', ''))}">${esc(a.chip)}</span>`; };
+const TS = '\u2009', nfT = v => Math.round(v).toString().replace(/\B(?=(\d{3})+(?!\d))/g, TS);
+const resPlaque = d => { const R = C.res_area, a = d.res_area;
+  if (!a) return `<div class="rap no"><div class="rac">${esc(R.captions.none)}</div><div class="ran">${esc(R.empty)}</div></div>`;
+  const cap = a.kind === 'total' ? R.captions.total : a.kind === 'est' ? R.captions.est : a.kind === 'limit' ? R.captions.limit : R.captions.res;
+  const chip = a.kind === 'res_media' && a.url ? ` <a class="chip ach med" href="${esc(a.url)}" target="_blank" rel="noopener" title="${esc(dom(a.url))}" onclick="event.stopPropagation()">${esc(R.chips.media)}<svg width="10" height="10" viewBox="0 0 10 10" aria-hidden="true"><path d="M3 1.5h5.5V7M8.5 1.5 1.5 8.5" fill="none" stroke="currentColor" stroke-width="1.4"/></svg></a>`
+    : a.kind === 'res_media' ? ` <span class="chip ach med">${esc(R.chips.media)}</span>` : a.kind === 'est' ? ` <span class="rach" title="${esc(a.tip || '')}">${esc(R.chips.est)}</span>` : a.kind === 'limit' ? ` <span class="rach" title="${esc(a.tip || '')}">${esc(R.chips.limit)}</span>` : '';
+  return `<div class="rap k-${a.kind}" title="${esc(a.tip || a.raw || '')}"><div class="rac">${esc(cap)}${chip}</div><div class="ran">${a.approx ? '≈' + TS : ''}${nfT(a.v)}<small>${TS}${esc(R.unit)}</small></div></div>`; };
+const areaSummary = () => { const R = C.res_area, n = k => B.decisions.filter(d => (d.res_area ? d.res_area.kind : 'none') === k).length;
+  return esc(R.counter_label) + ' ' + Object.entries(R.counter).map(([k, l]) => `${esc(l)} ${n(k)}`).join(' · '); };
 const protoTxt = d => d.proto ? '№ ' + esc(d.proto) : esc(C.proto_missing || '№ не указан');
 const adrSummary = () => { const A = C.address_sources || {}, n = k => B.decisions.filter(d => d.address_source === k).length;
   return esc(C.address_summary_label || 'Адрес:') + ' ' + ['protocol', 'cadastre', 'media', 'none'].concat(n('analyst') ? ['analyst'] : []).map(k => `${esc(A[k]?.count || k)} ${n(k)}`).join(' · '); };
@@ -129,11 +138,11 @@ function draw() {
 function drawList() {
   const L = filtered(false).sort((a, b) => b.sort.localeCompare(a.sort));
   $('#lcap').textContent = `Решения · ${L.length} из ${B.decisions.length}`;
-  if (!$('#adrs')) $('#lcap').insertAdjacentHTML('afterend', '<div id="adrs" class="sm mu" style="margin:-2px 0 8px"></div>'); $('#adrs').innerHTML = adrSummary();
+  if (!$('#adrs')) $('#lcap').insertAdjacentHTML('afterend', '<div id="adrs" class="sm mu" style="margin:-2px 0 8px"></div>'); $('#adrs').innerHTML = adrSummary() + '<br>' + areaSummary();
   $('#ls').innerHTML = L.length ? L.map(d => { const g = groupOf(d);
     return `<div class="card dc" data-id="${d.id}"><div class="top">${chipG(g)}<span class="chip">${esc(d.organ)}</span><span class="sm mu">${esc(d.date.replace(/ \(.*/, ''))}</span>${approvedLater(d) ? '<span class="chip" style="background:#EAF3FF;color:#0060C7">позже одобрено</span>' : ''}</div>
     <div class="pn">Протокол ${protoTxt(d)} · ${esc(d.organ)} · ${esc(d.date.replace(/ \(.*/, ''))}</div>
-    <div class="adr">${d.address ? esc(d.address) + adrChip(d) : adrMiss()}</div>${d.cad ? `<div class="cadn">${esc(d.cad)}</div>` : `<div class="cadn no">${esc(C.cad_missing || 'Кадастровый № не указан')}</div>`}
+    <div class="adrw"><div class="adrl"><div class="adr">${d.address ? esc(d.address) + adrChip(d) : adrMiss()}</div>${d.cad ? `<div class="cadn">${esc(d.cad)}</div>` : `<div class="cadn no">${esc(C.cad_missing || 'Кадастровый № не указан')}</div>`}</div>${resPlaque(d)}</div>
     <div class="dev">${esc(d.dev) || '<span class="na">Застройщик не указан</span>'}</div>
     ${d.tags.length ? `<div class="chips" style="margin-top:8px">${d.tags.map(t => `<span class="chip">${t} · ${esc(tagName(t))}</span>`).join('')}</div>` : ''}
     ${d.quote ? `<q>${esc(d.quote.length > 180 ? d.quote.slice(0, 177) + '…' : d.quote)}</q>` : ''}</div>`; }).join('') : '<div class="empty">Ничего не найдено</div>';
@@ -143,7 +152,7 @@ function detail(d) {
   const g = groupOf(d), row = (k, v) => v ? `<div class="li"><span>${k}</span><span>${v}</span></div>` : '';
   $('#sh').innerHTML = `<div class="sheet"><div><div class="grab"></div><button class="close" aria-label="Закрыть">✕</button>
   <div class="top" style="display:flex;gap:6px;flex-wrap:wrap;margin-top:6px">${chipG(g)}<span class="chip">${esc(d.organ)}</span></div>
-  <div class="pn" style="margin-top:10px">Протокол ${protoTxt(d)} · ${esc(d.date)}</div><h1 class="adr" style="font-size:22px;line-height:28px;margin-top:4px">${d.address ? esc(d.address) + adrChip(d) : adrMiss()}</h1>${d.cad ? `<div class="cadn">${esc(d.cad)}</div>` : ''}${d.address_source && C.address_sources[d.address_source] ? `<div class="sm mu">${esc(C.address_sources[d.address_source].title)}</div>` : ''}
+  <div class="pn" style="margin-top:10px">Протокол ${protoTxt(d)} · ${esc(d.date)}</div><h1 class="adr" style="font-size:22px;line-height:28px;margin-top:4px">${d.address ? esc(d.address) + adrChip(d) : adrMiss()}</h1>${d.cad ? `<div class="cadn">${esc(d.cad)}</div>` : ''}${resPlaque(d)}${d.address_source && C.address_sources[d.address_source] ? `<div class="sm mu">${esc(C.address_sources[d.address_source].title)}</div>` : ''}
   ${g.hint ? `<div class="sm mu">${esc(g.hint)}</div>` : ''}
   <div class="cap">Заявка</div><div class="list kv">${row('Дата', esc(d.date))}${row('Застройщик', esc(d.dev))}${row('Район', esc(d.district))}${row('Кадастровый №', esc(d.cad))}
   ${row('Площадь участка', d.plot && esc(d.plot) + ' м²')}${row('Площадь объекта', d.area && esc(d.area) + ' м²')}${row('Этажность', esc(d.floors))}${row('КИТ', esc(d.kit))}${row('Функция', esc(d.func))}${row('Зона ПЗЗ', esc(d.pzz))}</div>
@@ -342,11 +351,15 @@ function express(p) {
   <div class="ex-s">${s.per_m2 ? nf(s.per_m2 / 1000, 1) + ' тыс. ₽/м²' : ''}${s.vs_cad ? ' · ' + nf(s.vs_cad, 2) + ' кадастровой' : ''}</div>
   <div class="ex-t" id="xt"></div>
   <div class="ex-g">${E.tep.map(([k, l]) => `<div><span>${l}${norm(k)}</span><b>${tv[k]}</b></div>`).join('')}</div>
+  ${pNorms(s)}
   <div class="ex-sl"><div class="sm" style="display:flex;justify-content:space-between"><span>${esc(S.label)}</span><b id="xv"></b></div>
   <input type="range" id="vsl" min="${S.min}" max="${S.max}" step="${S.step}" value="${VPR ?? bp}">
   <div class="sm mu" style="position:relative;height:16px"><span style="position:absolute;left:0">${S.min}</span><span style="position:absolute;left:${(bp - S.min) / (S.max - S.min) * 100}%;transform:translateX(-50%);color:#C9A45C">▲ ${bp}</span><span style="position:absolute;right:0">${S.max}</span></div></div>
   <div class="ex-l">${esc(E.sens_label)}: <b>${sens.map(x => x == null ? '—' : nf(x / 1e6)).join(' / ')} млн ₽</b><div class="sm mu">при цене квартир 240 / ${bp} / 300 тыс. ₽/м²</div></div></section>`;
 }
+function pNorms(s) { const N = s && s.tep && s.tep.parking_norms, P = C.parking_norms; if (!N || !P) return '';
+  const parts = [N.flats_m2_per_place ? P.flats.replace('{flats}', nf(N.flats_m2_per_place)) : '', N.commercial_m2_per_place ? P.commercial.replace('{commercial}', nf(N.commercial_m2_per_place)) : ''].filter(Boolean);
+  return parts.length ? `<div class="pnr sm"><span class="mu">${esc(P.label)}:</span> ${parts.map(x => `${esc(x)} <span class="nrm">${esc(P.chip)}</span>`).join(' · ')}</div>` : ''; }
 function xDraw(p) {
   const V = p.valuation; if (!V || !$('#xc')) return; const bp = Math.round(V.base_price / 1000), x = sensAt(V, V.base, VPR), s = V.list.find(z => z.key === V.base), F = V.summary;
   const f = VPR === bp ? {rev: F.rev, costs: F.costs, profit: F.profit, land: s.price} : x || {};
@@ -366,7 +379,7 @@ function valDraw(p) {
   const s = V.list.find(x => x.key === VSEL), bp = Math.round(V.base_price / 1000);
   if (!s.available) { el.innerHTML = `<div class="sm mu">${esc(s.title)}</div><div style="font-size:24px;font-weight:700;margin:4px 0">${esc(C.valuation_no_price)}</div><div class="sm">${esc(s.flag)}</div>`; return; }
   const x = sensAt(V, VSEL, VPR);
-  el.innerHTML = `<div class="sm mu">${esc(s.title)} · цена участка</div><div style="font-size:34px;font-weight:700;letter-spacing:-.02em;line-height:40px">${x ? (x.interp ? '≈ ' : '') + mln(x.land) : NA}</div>
+  el.innerHTML = `<div class="sm mu">${esc(s.title)} · цена участка</div>${pNorms(s) ? '' : ''}<div style="font-size:34px;font-weight:700;letter-spacing:-.02em;line-height:40px">${x ? (x.interp ? '≈ ' : '') + mln(x.land) : NA}</div>
   <div class="sm mu">${x && x.rev != null ? `выручка ${mln(x.rev)} · затраты ${mln(x.costs)} · прибыль ${mln(x.profit)}` : (x && x.interp ? 'интерполяция между точками модели' : '')}</div>
   <div class="sm" style="margin-top:8px">${esc(s.flag)}</div>
   <div class="sm mu" style="margin-top:8px">при цене квартир ${VPR} тыс. ₽/м² (ползунок выше)</div>`;
