@@ -1,6 +1,6 @@
 'use strict';
 /* Development App — код без данных. Данные: закрытый репозиторий DATA_REPO, ключ GitHub хранится на устройстве, зашифрован PIN-кодом. */
-const DATA_REPO = 'makc178/claims-registry-data', DATA_FILE = 'devapp/bundle.json', PIN_BLOB = {"v": 1, "bv": 1792017019, "kdf": "PBKDF2-SHA256", "iterations": 600000, "salt": "QTGdKLByzMsnJwWDwDIw1g==", "iv": "zcydfxt83ll8kcEW", "ct": "KeONKlDJV8xTImgtCczatPnSjaj4vniIXWU+7m82VE+cGs9R2WxvYV7W0tBDk7n4hkKSGEhtNEWDPf4IX5XsRz9OYMvldi0cM9VtiWHmIedUWxalrUpGOZScxO/1n9Vk3BvrcOSXGDghCS+7iNCmODGu5Fw="}, LT = {"bg": "#14213D", "digit": "#EFE6D2", "border": "#C9A45C", "dot": "#C9A45C", "glass": "rgba(255,255,255,.06)", "glass_active": "rgba(201,164,92,.18)", "button_px": 72, "logo_text": "MI Development", "error": "#E8A39B", "logo_src": "logo.svg", "logo_w": 96, "logo_gap": 32};
+const DATA_REPO = 'makc178/claims-registry-data', DATA_FILE = 'devapp/bundle.json', PIN_BLOB = {"v": 1, "bv": 1792017511, "kdf": "PBKDF2-SHA256", "iterations": 600000, "salt": "+yHgJpafI357OGcHiPs2Zg==", "iv": "AoCOMnQ1s8xIMLRq", "ct": "1a6aa1nOecBwff3kdWIgpXpJNgOZFOupzlV0mSfK94S1+jDsCKbSqz6S8XY9UX/2rVO3MQ2ZS61A5YUfOsDanBuuCmGheJ/dgCd6BK1i10j9udsgj9dE9YdA/Wq31a4H5z5P1qe+yOu/hFqVz5tej66S5Wg="}, LT = {"bg": "#14213D", "digit": "#EFE6D2", "border": "#C9A45C", "dot": "#C9A45C", "glass": "rgba(255,255,255,.06)", "glass_active": "rgba(201,164,92,.18)", "button_px": 72, "logo_text": "MI Development", "error": "#E8A39B", "logo_src": "logo.svg", "logo_w": 96, "logo_gap": 32};
 const $ = s => document.querySelector(s), A = $('#app');
 const esc = s => String(s ?? '').replace(/[&<>"']/g, c => ({'&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;'}[c]));
 const nf = (n, d = 0) => (n == null || !isFinite(n)) ? '—' : n.toLocaleString('ru-RU', {maximumFractionDigits: d, minimumFractionDigits: 0});
@@ -133,7 +133,7 @@ function drawList() {
   $('#ls').innerHTML = L.length ? L.map(d => { const g = groupOf(d);
     return `<div class="card dc" data-id="${d.id}"><div class="top">${chipG(g)}<span class="chip">${esc(d.organ)}</span><span class="sm mu">${esc(d.date.replace(/ \(.*/, ''))}</span>${approvedLater(d) ? '<span class="chip" style="background:#EAF3FF;color:#0060C7">позже одобрено</span>' : ''}</div>
     <div class="pn">Протокол ${protoTxt(d)} · ${esc(d.organ)} · ${esc(d.date.replace(/ \(.*/, ''))}</div>
-    <div class="adr">${d.address ? esc(d.address) + adrChip(d) : adrMiss()}</div>${d.cad ? `<div class="cadn">${esc(d.cad)}</div>` : ''}
+    <div class="adr">${d.address ? esc(d.address) + adrChip(d) : adrMiss()}</div>${d.cad ? `<div class="cadn">${esc(d.cad)}</div>` : `<div class="cadn no">${esc(C.cad_missing || 'Кадастровый № не указан')}</div>`}
     <div class="dev">${esc(d.dev) || '<span class="na">Застройщик не указан</span>'}</div>
     ${d.tags.length ? `<div class="chips" style="margin-top:8px">${d.tags.map(t => `<span class="chip">${t} · ${esc(tagName(t))}</span>`).join('')}</div>` : ''}
     ${d.quote ? `<q>${esc(d.quote.length > 180 ? d.quote.slice(0, 177) + '…' : d.quote)}</q>` : ''}</div>`; }).join('') : '<div class="empty">Ничего не найдено</div>';
@@ -195,12 +195,12 @@ function tepCore(I, sid) {
     green: Akv * T.greening.per_100m2 / 100, kg: Math.ceil(res * T.social_per_1000.kindergarten / 1000), sch: Math.ceil(res * T.social_per_1000.school / 1000)});
 }
 const NA = '<span class="na">нет данных</span>';
-const TEP_ROWS = [['Расчётная площадь S<sub>р</sub>', r => nf(r.Sr) + ' м²'], ['Площадь квартир A<sub>кв</sub>', r => nf(r.Akv) + ' м²'], ['Коммерция A<sub>ком</sub>', r => nf(r.Acom) + ' м²'],
+const TEP_ROWS = [['Расчётная площадь S<sub>р</sub>', r => nf(r.Sr) + ' м²'], ['Площадь квартир A<sub>кв</sub>', r => nf(r.Akv) + ' м²'], ['Коммерция A<sub>ком</sub>', r => nf(r.Acom) + ' м²' + gasnRow(gS(PARCEL || C.projects[0], r.sid), 'коммерция')],
   ['Наземная СПП', r => nf(r.SPP) + ' м²'], ['Квартир', r => r.N ? nf(r.N) : NA], ['Жителей', r => nf(r.res)], ['Машино-мест', r => r.park ? nf(r.park) : NA], ['Озеленение', r => nf(r.green) + ' м²'],
   ['Мест в детсадах (потребность)', r => nf(r.kg)], ['Мест в школах (потребность)', r => nf(r.sch)],
   ['Соцобъект: мест ДОУ / СОШ', r => r.soc ? `${nf(r.soc.places.kindergarten)} / ${nf(r.soc.places.school)}` : '—'],
   ['Соцобъект: отдано квартир', r => r.soc ? (r.soc.unknown ? `≥ ${nf(r.aptLost)} м²` : nf(r.aptLost) + ' м²') : '—'],
-  ['Цена участка (Оценщик)', r => r.soc ? `<span class="na">${esc(C.tep.soc.price_status)}</span>` : NA]];
+  ['Цена участка (Оценщик)', r => { const P = PARCEL || C.projects[0]; return P?.valuation && P.valuation.list.some(x => x.tep_id === r.sid) ? vPrice(P, r.sid) : (r.soc ? `<span class="na">${esc(C.tep.soc.price_status)}</span>` : NA); }]];
 const SCN = () => C.tep.scenarios;
 
 function viewTep() {
@@ -267,22 +267,32 @@ function gpzuRow(p, f) {
   return {color: st.color, title: st.title, action: st.action.replace('{until}', u), explain: f.explain,
     pdf: exp ? `ГПЗУ ${iss} истёк (${R.valid_years} года по ${R.src}; даже +${R.extension_years} год по ${R.extension_src} — истёк ${u}), ${st.action}` : `ГПЗУ ${iss} действует до ${u}`};
 }
-function vPrice(p, id) { const s = p.valuation.list.find(x => x.tep_id === id); return !s ? '—' : s.available ? mln(s.price) + (s.upper ? ' (предел)' : '') : esc(C.valuation_no_price); }
+function vPrice(p, id) { const s = p.valuation.list.find(x => x.tep_id === id); return !s ? '—' : s.available ? mln(s.price) + (s.upper && !s.base ? ' (предел)' : '') : esc(C.valuation_no_price); }
 function devTep(p, mode) {
   const T = p.tep_dev; if (!T) return '';
   const cell = x => x == null ? NA : (typeof x === 'number' ? nf(x) : esc(x));
-  if (mode === 'list') return `<div class="list out">${T.cols.map(([id, l], i) => `<div class="li"><span>${esc(l)}${T.cols_chip[id] ? ` <span class="chip" style="background:#EAF3FF;color:#0060C7;min-height:18px;font-size:10px">${esc(T.cols_chip[id])}</span>` : ''}<div class="sm mu">${esc(T.verdicts[id] || '')}</div></span><span>${T.rows[1][1][i] != null ? nf(T.rows[1][1][i]) + ' м²' : NA}${p.valuation ? `<div class="sm mu">${vPrice(p, id)}</div>` : ''}</span></div>`).join('')}</div>`;
+  if (mode === 'list') return `<div class="list out">${T.cols.map(([id, l], i) => `<div class="li"><span>${esc(l)}${T.cols_chip[id] ? ` <span class="chip" style="background:#EAF3FF;color:#0060C7;min-height:18px;font-size:10px">${esc(T.cols_chip[id])}</span>` : ''}<div class="sm mu">${esc(T.verdicts[id] || '')}</div></span><span>${T.rows[1][1][i] != null ? nf(T.rows[1][1][i]) + ' м²' + flatsBonus(gS(p, id), p.valuation) : NA}${p.valuation ? `<div class="sm mu">${vPrice(p, id)}</div>` : ''}</span></div>`).join('')}</div>`;
   return `<div class="tw"><table class="tt"><thead><tr><th></th>${T.cols.map(([id, l]) => `<th>${esc(l)}${T.cols_chip[id] ? `<br><span class="chip" style="background:#EAF3FF;color:#0060C7">${esc(T.cols_chip[id])}</span>` : ''}</th>`).join('')}</tr></thead>
-  <tbody>${T.rows.map(([k, v]) => `<tr><td>${esc(k)}</td>${v.map(x => `<td>${cell(x)}</td>`).join('')}</tr>`).join('')}<tr><td>Статус</td>${T.cols.map(([id]) => `<td>${T.col_status[id] ? dotL(T.col_status[id]) + ' ' + esc(T.col_status[id]) : ''}</td>`).join('')}</tr>${p.valuation ? `<tr><td>Цена участка (Оценщик)</td>${T.cols.map(([id]) => `<td><b>${vPrice(p, id)}</b></td>`).join('')}</tr>` : ''}<tr><td>Вывод</td>${T.cols.map(([id]) => `<td style="text-align:left">${esc(T.verdicts[id] || '')}</td>`).join('')}</tr></tbody></table></div>`;
+  <tbody>${T.rows.map(([k, v]) => `<tr><td>${esc(k)}</td>${v.map((x, i) => `<td>${cell(x)}${gasnRow(gS(p, T.cols[i]?.[0]), k)}${/квартир/i.test(k) && /м²/.test(k) && !/отдано/i.test(k) ? flatsBonus(gS(p, T.cols[i]?.[0]), p.valuation) : ''}</td>`).join('')}</tr>`).join('')}<tr><td>Статус</td>${T.cols.map(([id]) => `<td>${T.col_status[id] ? dotL(T.col_status[id]) + ' ' + esc(T.col_status[id]) : ''}</td>`).join('')}</tr>${p.valuation ? `<tr><td>Цена участка (Оценщик)</td>${T.cols.map(([id]) => `<td><b>${vPrice(p, id)}</b></td>`).join('')}</tr>` : ''}<tr><td>Вывод</td>${T.cols.map(([id]) => `<td style="text-align:left">${esc(T.verdicts[id] || '')}</td>`).join('')}</tr></tbody></table></div>`;
 }
 const mln = x => x == null ? '—' : nf(x / 1e6) + ' млн ₽';
 const LOGO_H = 'logo-h.svg';
 // «выгоднее» — максимум цены среди базовых сценариев (без справочного верхнего предела и недоступных)
-function bestKey(V) { const c = V.list.filter(s => s.available && !s.upper && !s.reference); return c.length > 1 ? c.reduce((a, b) => b.price > a.price ? b : a).key : null; }
+function bestKey(V) { return V.recommended && V.list.some(s => s.key === V.recommended && s.available) ? V.recommended : null; }  // «выгоднее» — только из result.json (recommended)
 const capLight = l => { const P = C.traffic_policy; if (!l) return ''; return l === 'зелёный' && !P.green_requires_met ? P.cap_without_official : l; };
 const dotL = l => l ? `<i class="dot8" style="background:${C.traffic[capLight(l)]}"></i>` : '';
 const bChip = t => `<span class="chip" style="background:#EAF3FF;color:#0060C7;min-height:18px;font-size:10px">${esc(t)}</span>`;
-const sTags = (s, V) => (s.base ? bChip('база') : '') + (s.upper ? `<span class="chip" style="min-height:18px;font-size:10px">верхний предел · справочно</span>` : '') + (s.reference ? `<span class="chip" style="min-height:18px;font-size:10px">справочно</span>` : '') + (s.key === bestKey(V) ? bChip(C.tep.soc.better_chip) : '');
+const gS = (p, id) => p?.valuation?.list.find(s => s.tep_id === id || s.key === id);
+const gasnTip = a => { const G = C.gasn; return G.title + (a != null ? G.title_area.replace('{area_project}', nf(a)) : ''); };
+const gasnPill = a => ` <span class="nrm gasn" title="${esc(gasnTip(a))}">${esc(C.gasn.chip)}</span>`;
+// строка ТЭП (по названию) у сценария s: есть ли у неё флаг +10% ГАСН в result.json
+const gasnRow = (s, label) => { const G = C.gasn, R = s && s.gasn_rows; if (!R || !G) return '';
+  for (const [k, a] of Object.entries(R)) { const id = G.key_alias[k] || k, re = G.row_match[id]; if (re && new RegExp(re, 'i').test(label)) return gasnPill(a); } return ''; };
+// +10% на квартиры: капсула у площади квартир, только если в файле нет отдельного сценария «сверх КИТ»
+const flatsBonus = (s, V) => { const f = s && s.flats_bonus; if (!f || (V || PARCEL?.valuation || {}).over_kit) return '';
+  return ` <span class="nrm gasn" title="${esc(C.gasn.title_flats.replace('{pct}', f.pct).replace('{before}', nf(f.before)))}">${esc(C.gasn.chip)}</span>`; };
+const markChip = s => s.mark ? ` <span class="chip" style="min-height:18px;font-size:10px;background:${(C.risk_marks || []).some(w => s.mark.toLowerCase().includes(w.toLowerCase())) ? 'rgba(255,59,48,.22);color:#FF8A80' : 'rgba(255,204,0,.2);color:#FFD666'}">${esc(s.mark)}</span>` : '';
+const sTags = (s, V) => (s.base ? bChip('база') : '') + markChip(s) + (s.upper && !s.base ? `<span class="chip" style="min-height:18px;font-size:10px">верхний предел · справочно</span>` : '') + (s.reference ? `<span class="chip" style="min-height:18px;font-size:10px">справочно</span>` : '') + (s.key === bestKey(V) ? bChip(C.tep.soc.better_chip) : '');
 let VSEL = null, VPR = null;
 function sensAt(V, key, pr) {
   const g = V.grid && V.grid[pr] && V.grid[pr][key]; if (g) return g;
@@ -294,7 +304,7 @@ function sensAt(V, key, pr) {
 }
 function fmTable(V, part) {
   const F = V.finmodel; if (!F) return '';
-  const nrm = x => x.norm ? ' <span class="nrm">норматив</span>' : '';
+  const nrm = x => (x.norm ? ' <span class="nrm">норматив</span>' : '') + ((C.gasn.flag_keys || []).some(k => x[k]) ? gasnPill(C.gasn.area_keys.map(k => x[k]).find(v => v != null)) : '');
   const sec = n => F.items.filter(x => x.section === n);
   const rows = n => sec(n).map(x => `<tr><td>${esc(x.name)}${nrm(x)}</td><td class="fp">${esc(x.parameter || '')}</td><td>${nf(x.amount_mln_rub, 1)}</td></tr>`).join('');
   const T = F.totals || {};
@@ -319,22 +329,33 @@ async function dlXlsx(path) {
 }
 function express(p) {
   const V = p.valuation, E = C.express; if (!V) return '';
-  const s = V.list.find(x => x.key === V.base), F = V.summary, kit = (p.tep_dev?.rows.find(r => r[0] === 'КИТ') || [])[1]?.[0] || nf(C.tep.kit.po_pravu, 1);
-  const tv = {flats_m2: s.tep.flats_m2 != null ? nf(s.tep.flats_m2) + ' м²' : NA, units: s.tep.units != null ? nf(s.tep.units) : NA, parking_total: s.tep.parking_total != null ? nf(s.tep.parking_total) : NA, kit: esc(kit)};
-  const bp = Math.round(V.base_price / 1000), s3 = V.sens3, sens = [s3[240]?.[V.base], s.price, s3[300]?.[V.base]];
-  const norm = k => E.normative[k] ? `<span class="nrm">${esc(E.normative[k])}</span>` : '';
-  return `<section class="ex"><div class="ex-k">${esc(E.title)} · ${esc(s.title.replace(/ — .*/, ''))}</div>
-  <div class="ex-p">${mln(s.price)}</div>
+  const s = V.list.find(x => x.key === V.base), kit = (p.tep_dev?.rows.find(r => r[0] === 'КИТ') || [])[1]?.[0] || nf(C.tep.kit.po_pravu, 1);
+  const tv = {flats_m2: s.tep.flats_m2 != null ? nf(s.tep.flats_m2) : NA, units: s.tep.units != null ? nf(s.tep.units) : NA, parking_total: s.tep.parking_total != null ? nf(s.tep.parking_total) : NA, kit: esc(kit)};
+  const bp = Math.round(V.base_price / 1000), s3 = V.sens3, sens = [s3[240]?.[V.base], s.price, s3[300]?.[V.base]], S = C.slider;
+  const norm = k => (E.normative[k] ? `<span class="nrm">${esc(E.normative[k])}</span>` : '') + gasnRow(s, ({parking_total: 'паркинг', flats_m2: '', units: '', kit: ''})[k] || '') + (k === 'flats_m2' ? flatsBonus(s, V) : '');
+  const lbl = (E.label || '{short} · КИТ {kit}').replace('{short}', (C.tep.short || {})[s.tep_id] || s.title.replace(/ \(.*/, '')).replace('{kit}', esc(kit));
+  return `<section class="ex" id="xc"><div class="ex-k">${esc(lbl)}</div>
+  <div class="ex-p" id="xp"></div>
   <div class="ex-s">${s.per_m2 ? nf(s.per_m2 / 1000, 1) + ' тыс. ₽/м²' : ''}${s.vs_cad ? ' · ' + nf(s.vs_cad, 2) + ' кадастровой' : ''}</div>
-  <div class="ex-t">${[['Выручка', F.rev], ['Затраты', F.costs], ['Прибыль', F.profit]].map(([l, x]) => `<div><span>${l}</span><b>${x != null ? nf(x / 1e6) : '—'}</b><em>млн ₽</em></div>`).join('')}</div>
-  <div class="ex-g">${E.tep.map(([k, l, u]) => `<div><span>${l}${norm(k)}</span><b>${tv[k]}</b></div>`).join('')}</div>
-  <div class="ex-l">${esc(E.sens_label)}: <b>${sens.map(x => x == null ? '—' : nf(x / 1e6)).join(' / ')} млн ₽</b><div class="sm mu">при цене квартир 240 / ${bp} / 300 тыс. ₽/м²</div></div>
-  <div class="sm mu">${esc(V.status)}</div></section>`;
+  <div class="ex-t" id="xt"></div>
+  <div class="ex-g">${E.tep.map(([k, l]) => `<div><span>${l}${norm(k)}</span><b>${tv[k]}</b></div>`).join('')}</div>
+  <div class="ex-sl"><div class="sm" style="display:flex;justify-content:space-between"><span>${esc(S.label)}</span><b id="xv"></b></div>
+  <input type="range" id="vsl" min="${S.min}" max="${S.max}" step="${S.step}" value="${VPR ?? bp}">
+  <div class="sm mu" style="position:relative;height:16px"><span style="position:absolute;left:0">${S.min}</span><span style="position:absolute;left:${(bp - S.min) / (S.max - S.min) * 100}%;transform:translateX(-50%);color:#C9A45C">▲ ${bp}</span><span style="position:absolute;right:0">${S.max}</span></div></div>
+  <div class="ex-l">${esc(E.sens_label)}: <b>${sens.map(x => x == null ? '—' : nf(x / 1e6)).join(' / ')} млн ₽</b><div class="sm mu">при цене квартир 240 / ${bp} / 300 тыс. ₽/м²</div></div></section>`;
 }
+function xDraw(p) {
+  const V = p.valuation; if (!V || !$('#xc')) return; const bp = Math.round(V.base_price / 1000), x = sensAt(V, V.base, VPR), s = V.list.find(z => z.key === V.base), F = V.summary;
+  const f = VPR === bp ? {rev: F.rev, costs: F.costs, profit: F.profit, land: s.price} : x || {};
+  $('#xp').textContent = (x && x.interp && VPR !== bp ? '≈ ' : '') + (f.land != null ? mln(f.land) : '—');
+  $('#xv').textContent = VPR + (VPR === bp ? ' · база' : '');
+  $('#xt').innerHTML = [['Выручка', f.rev], ['Затраты', f.costs], ['Прибыль', f.profit]].map(([l, v]) => `<div><span>${l}</span><b>${v != null ? nf(v / 1e6) : '—'}</b><em>млн ₽</em></div>`).join('');
+}
+const valInit = p => { const V = p.valuation; if (V) { VSEL = VSEL || V.base; VPR = VPR ?? Math.round(V.base_price / 1000); } return ''; };
 function valBlock(p) {
   const V = p.valuation; if (!V) return `<div class="card sm mu">${esc(p.valuation_status || 'ожидает оценки')}</div>`;
   VSEL = VSEL || V.base; VPR = VPR ?? Math.round(V.base_price / 1000);
-  return `<div class="list">${V.list.map(s => `<div class="li vs ${s.key === VSEL ? 'sel' : ''}" data-s="${s.key}"><span style="display:flex;gap:8px;align-items:flex-start">${dotL(s.light) || '<i class="dot8"></i>'}<span>${esc(s.title)}<br>${sTags(s, V)}</span></span><span>${s.available ? mln(s.price) : `<span class="na">${esc(C.valuation_no_price)}</span>`}</span></div>`).join('')}</div>
+  return `<div class="list">${V.list.map(s => `<div class="li vs ${s.key === VSEL ? 'sel' : ''}" data-s="${s.key}"><span class="vn">${dotL(s.light) || '<i class="dot8"></i>'}<span>${esc(s.title)}<br>${sTags(s, V)}</span></span><span class="vp">${s.available ? mln(s.price) : `<span class="na">${esc(C.valuation_no_price)}</span>`}</span></div>`).join('')}</div>
   <div class="card" id="vcard"></div><div class="sm mu" style="margin:6px 4px 0">${esc(V.status)}. Оценщик, ${esc(V.date || '')}.${V.recommended_note ? ' Рекомендация: ' + esc(V.recommended_note) + '.' : ''}</div>`;
 }
 function valDraw(p) {
@@ -345,10 +366,8 @@ function valDraw(p) {
   el.innerHTML = `<div class="sm mu">${esc(s.title)} · цена участка</div><div style="font-size:34px;font-weight:700;letter-spacing:-.02em;line-height:40px">${x ? (x.interp ? '≈ ' : '') + mln(x.land) : NA}</div>
   <div class="sm mu">${x && x.rev != null ? `выручка ${mln(x.rev)} · затраты ${mln(x.costs)} · прибыль ${mln(x.profit)}` : (x && x.interp ? 'интерполяция между точками модели' : '')}</div>
   <div class="sm" style="margin-top:8px">${esc(s.flag)}</div>
-  <div style="display:flex;justify-content:space-between;margin-top:14px" class="sm"><span>${esc(S.label)}</span><b>${VPR}${VPR === bp ? ' · база' : ''}</b></div>
-  <input type="range" id="vsl" min="${S.min}" max="${S.max}" step="${S.step}" value="${VPR}" style="width:100%;accent-color:#007AFF;margin-top:6px">
-  <div class="sm mu" style="position:relative;height:16px"><span style="position:absolute;left:0">${S.min}</span><span style="position:absolute;left:${(bp - S.min) / (S.max - S.min) * 100}%;transform:translateX(-50%);color:#007AFF">▲ ${bp}</span><span style="position:absolute;right:0">${S.max}</span></div>`;
-  $('#vsl').oninput = e => { VPR = +e.target.value; valDraw(p); };
+  <div class="sm mu" style="margin-top:8px">при цене квартир ${VPR} тыс. ₽/м² (ползунок выше)</div>`;
+
 }
 function trafficOf(p, dec) {
   const P = C.traffic_policy, rank = {'зелёный': 0, 'жёлтый': 1, 'красный': 2}, rows = [];
@@ -364,12 +383,13 @@ const parcelDec = p => B.decisions.filter(d => (p.cad && d.cad === p.cad) || [].
 function viewPrice() {
   const p = PARCEL || C.projects[0], M = $('#m'); PARCEL = p;
   if (!p) return M.innerHTML = '<div class="card empty">Участков нет</div>';
-  M.innerHTML = `<h1>${esc(p.cad)}</h1><div class="sub">${esc((p.data || {}).address || '')}${p.district ? ' · ' + esc(p.district) + ' район' : ''}</div>${express(p)}<div class="cap">Сценарии</div>${valBlock(p)}
+  M.innerHTML = `<h1>${esc(p.cad)}</h1><div class="sub">${esc((p.data || {}).address || '')}${p.district ? ' · ' + esc(p.district) + ' район' : ''}</div>${valInit(p)}${express(p)}<div class="cap">Другие сценарии</div>${valBlock(p)}
   ${p.valuation?.finmodel ? `<details class="card fmd"><summary>Базовая финмодель</summary>${fmTable(p.valuation)}${p.valuation.finmodel_xlsx ? '<button class="btn o" id="xl">Скачать finmodel.xlsx</button>' : ''}</details>` : ''}
   <button class="btn" id="pdf2">Справка PDF</button><button class="btn o" id="toP">Участок: статус и параметры</button>`;
   if ($('#xl')) $('#xl').onclick = () => dlXlsx(p.valuation.finmodel_xlsx);
   M.querySelectorAll('.vs').forEach(e => e.onclick = () => { VSEL = e.dataset.s; M.querySelectorAll('.vs').forEach(z => z.classList.toggle('sel', z === e)); valDraw(p); });
-  valDraw(p); $('#pdf2').onclick = () => report(p); $('#toP').onclick = () => { TAB = 'parcel'; render(); scrollTo(0, 0); };
+  valDraw(p); xDraw(p); if ($('#vsl')) $('#vsl').oninput = e => { VPR = +e.target.value; xDraw(p); valDraw(p); };
+  $('#pdf2').onclick = () => report(p); $('#toP').onclick = () => { TAB = 'parcel'; render(); scrollTo(0, 0); };
 }
 function viewParcel() {
   const M = $('#m');
