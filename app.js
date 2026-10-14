@@ -1,6 +1,6 @@
 'use strict';
 /* Development App — код без данных. Данные: закрытый репозиторий DATA_REPO, ключ GitHub хранится на устройстве, зашифрован PIN-кодом. */
-const DATA_REPO = 'makc178/claims-registry-data', DATA_FILE = 'devapp/bundle.json', PIN_BLOB = {"v": 1, "bv": 1792019017, "kdf": "PBKDF2-SHA256", "iterations": 600000, "salt": "wQGSDfZ47B+brCqmjDhdXg==", "iv": "0Se4j/JEg9rQAO8t", "ct": "LB3hWyB3BZbGu60nbTy9ztvxFPmihXNmYd9Vk6bPUHVQvqhyKuzfOPQg0x+2BScAXNic3KNyLNtZMZGAdsAs5BrwB37htqobVUdjiL3qGw29U7+Ll5rbFIzBQK9ykdn7yublSc0hJkGxDsev4u2oPaNoCIg="}, LT = {"bg": "#14213D", "digit": "#EFE6D2", "border": "#C9A45C", "dot": "#C9A45C", "glass": "rgba(255,255,255,.06)", "glass_active": "rgba(201,164,92,.18)", "button_px": 72, "logo_text": "MI Development", "error": "#E8A39B", "logo_src": "logo.svg", "logo_w": 96, "logo_gap": 32};
+const DATA_REPO = 'makc178/claims-registry-data', DATA_FILE = 'devapp/bundle.json', PIN_BLOB = {"v": 1, "bv": 1792019258, "kdf": "PBKDF2-SHA256", "iterations": 600000, "salt": "hY630tgZiNq5n7mOzvOmEA==", "iv": "qK2O1sFmII/9kaQm", "ct": "JAxy0gPCYsiCcOOEXajJpzShyZOhK9zRDLHAOQLJZPr6tU6Jx3Ah4EOnWbaRkG1bIkdieSXsPAujH7/qDbRivvotRoRMDDePQg2tMygRxG8lhELZ4iQ+0r/9daMy/J2hUGg8A6XVh+tdPCiar7wxmdqHBgM="}, LT = {"bg": "#14213D", "digit": "#EFE6D2", "border": "#C9A45C", "dot": "#C9A45C", "glass": "rgba(255,255,255,.06)", "glass_active": "rgba(201,164,92,.18)", "button_px": 72, "logo_text": "MI Development", "error": "#E8A39B", "logo_src": "logo.svg", "logo_w": 96, "logo_gap": 32};
 const $ = s => document.querySelector(s), A = $('#app');
 const esc = s => String(s ?? '').replace(/[&<>"']/g, c => ({'&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;'}[c]));
 const nf = (n, d = 0) => (n == null || !isFinite(n)) ? '—' : n.toLocaleString('ru-RU', {maximumFractionDigits: d, minimumFractionDigits: 0});
@@ -73,12 +73,15 @@ const adrChip = d => { const a = (C.address_sources || {})[d.address_source]; if
 const TS = '\u2009', nfT = v => Math.round(v).toString().replace(/\B(?=(\d{3})+(?!\d))/g, TS);
 const resPlaque = d => { const R = C.res_area, a = d.res_area;
   if (!a) return `<div class="rap no"><div class="rac">${esc(R.captions.none)}</div><div class="ran">${esc(R.empty)}</div></div>`;
-  const cap = a.kind === 'total' ? R.captions.total : a.kind === 'est' ? R.captions.est : a.kind === 'limit' ? R.captions.limit : R.captions.res;
+  const cap = a.kind === 'total' ? (a.media ? R.captions.total_media : R.captions.total) : a.kind === 'est' ? R.captions.est : a.kind === 'limit' ? R.captions.limit : R.captions.res;
   const isM = a.kind === 'res_media' || a.media; const chip = isM && a.url ? ` <a class="chip ach med" href="${esc(a.url)}" target="_blank" rel="noopener" title="${esc(dom(a.url))}" onclick="event.stopPropagation()">${esc(R.chips.media)}<svg width="10" height="10" viewBox="0 0 10 10" aria-hidden="true"><path d="M3 1.5h5.5V7M8.5 1.5 1.5 8.5" fill="none" stroke="currentColor" stroke-width="1.4"/></svg></a>`
-    : isM ? ` <span class="chip ach med">${esc(R.chips.media)}</span>` : a.kind === 'est' ? ` <span class="rach" title="${esc(a.tip || '')}">${esc(R.chips.est)}</span>` : a.kind === 'limit' ? ` <span class="rach" title="${esc(a.tip || '')}">${esc(R.chips.limit)}</span>` : '';
-  return `<div class="rap k-${a.kind}" title="${esc(a.tip || a.raw || '')}"><div class="rac">${esc(cap)}${chip}</div><div class="ran">${a.approx ? '≈' + TS : ''}${nfT(a.v)}<small>${TS}${esc(R.unit)}</small></div></div>`; };
-const areaSummary = () => { const R = C.res_area, n = k => B.decisions.filter(d => (d.res_area ? d.res_area.kind : 'none') === k).length;
-  return esc(R.counter_label) + ' ' + Object.entries(R.counter).map(([k, l]) => `${esc(l)} ${n(k)}`).join(' · '); };
+    : isM ? ` <span class="chip ach med">${esc(R.chips.media)}</span>` : ''; const chip2 = a.kind === 'est' ? ` <span class="rach" title="${esc(a.tip || '')}">${esc(R.chips.est)}</span>` : a.kind === 'limit' ? ` <span class="rach" title="${esc(a.tip || '')}">${esc(R.chips.limit)}</span>` : '';
+  return `<div class="rap k-${a.kind}" title="${esc(a.tip || a.raw || '')}"><div class="rac">${esc(cap)}${chip}${chip2}</div><div class="ran">${a.approx ? '≈' + TS : ''}${nfT(a.v)}<small>${TS}${esc(R.unit)}</small></div></div>`; };
+const aType = d => { const a = d.res_area; return !a ? 'none' : a.kind === 'res_media' || a.kind === 'res_protocol' ? 'flats' : a.kind; };
+const aSrc = d => { const a = d.res_area; return !a ? null : (a.kind === 'res_media' || a.media) ? 'media' : a.kind === 'res_protocol' || a.kind === 'total' || a.total != null ? 'protocol' : null; };
+const areaSummary = () => { const T = C.res_area.counter_type, S = C.res_area.counter_source, nt = k => B.decisions.filter(d => aType(d) === k).length, ns = k => B.decisions.filter(d => aSrc(d) === k).length;
+  const t = T.items.filter(([k]) => nt(k) || T.always.includes(k)).map(([k, l]) => `${esc(l)} ${nt(k)}`).join(' · ');
+  return `<span id="aty">${esc(T.label)} ${t}</span><br><span id="asr" class="ascr">${esc(S.label)} ${S.items.map(([k, l]) => `${esc(l)} ${ns(k)}`).join(' · ')}</span>`; };
 const protoTxt = d => d.proto ? '№ ' + esc(d.proto) : esc(C.proto_missing || '№ не указан');
 const adrSummary = () => { const A = C.address_sources || {}, n = k => B.decisions.filter(d => d.address_source === k).length;
   return esc(C.address_summary_label || 'Адрес:') + ' ' + ['protocol', 'cadastre', 'media', 'none'].concat(n('analyst') ? ['analyst'] : []).map(k => `${esc(A[k]?.count || k)} ${n(k)}`).join(' · '); };
