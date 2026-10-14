@@ -1,11 +1,11 @@
 'use strict';
 /* Development App — код без данных. Данные: закрытый репозиторий DATA_REPO, ключ GitHub хранится на устройстве, зашифрован PIN-кодом. */
-const DATA_REPO = 'makc178/claims-registry-data', DATA_FILE = 'devapp/bundle.json', PIN_BLOB = {"v": 1, "bv": 1792015577, "kdf": "PBKDF2-SHA256", "iterations": 600000, "salt": "7r90+w8ryN3U76Bo6vq8hA==", "iv": "wT2goCD2tvTOgNK7", "ct": "yfTtwUYORUGUjUWqV5f+VyS1AFe71hR3XLfuSBaAGqEfKBVaGePR18JjjGsdMI/d0U9Q+A/H+WwLQ2gaEjFECULKFs+gzTb74Fv3QKiAgvauaE56ee4er4IpnGEJr5fBHOTrG9y27NLUGO9FxtDFqDYwV7c="}, LT = {"bg": "#14213D", "digit": "#EFE6D2", "border": "#C9A45C", "dot": "#C9A45C", "glass": "rgba(255,255,255,.06)", "glass_active": "rgba(201,164,92,.18)", "button_px": 72, "logo_text": "MI Development", "error": "#E8A39B"};
+const DATA_REPO = 'makc178/claims-registry-data', DATA_FILE = 'devapp/bundle.json', PIN_BLOB = {"v": 1, "bv": 1792016425, "kdf": "PBKDF2-SHA256", "iterations": 600000, "salt": "Gb832ih2LEmOZPSUdN8O0A==", "iv": "bV+yQfDV7Q74aP4l", "ct": "FlLc3C1ato9Iz6KyJMHhV4mS1/WyamXMQVSicikYQxSWp7CbuQtoZgM3qSJZZG6jF5nuIsHdSFK5EPF3LBk4rx1DM5indi/7L7pK2+9kd7bAFSVlCe9pOTAnY9qxVnZOTXB7VzEFr9DUIEmnUdKmxiSVGL0="}, LT = {"bg": "#14213D", "digit": "#EFE6D2", "border": "#C9A45C", "dot": "#C9A45C", "glass": "rgba(255,255,255,.06)", "glass_active": "rgba(201,164,92,.18)", "button_px": 72, "logo_text": "MI Development", "error": "#E8A39B", "logo_src": "logo.svg", "logo_w": 96, "logo_gap": 32};
 const $ = s => document.querySelector(s), A = $('#app');
 const esc = s => String(s ?? '').replace(/[&<>"']/g, c => ({'&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;'}[c]));
 const nf = (n, d = 0) => (n == null || !isFinite(n)) ? '—' : n.toLocaleString('ru-RU', {maximumFractionDigits: d, minimumFractionDigits: 0});
 const ICON = 'icon.svg';
-let B = null, C = null, TAB = 'parcel', F = {group: '', organ: '', year: '', tag: '', q: ''}, TEPI = {region: 'СПб', scen: 'po_pravu', cls: 'комфорт', zone: 'обычная', lo: 'А', urv: false}, LAW = {view: 'rules', region: ''};
+let B = null, C = null, TAB = 'price', F = {group: '', organ: '', year: '', tag: '', q: ''}, TEPI = {region: 'СПб', scen: 'po_pravu', cls: 'комфорт', zone: 'обычная', lo: 'А', urv: false}, LAW = {view: 'rules', region: ''};
 
 /* ---------- крипто ---------- */
 const te = new TextEncoder(), td = new TextDecoder();
@@ -29,11 +29,10 @@ function lockScreen(msg = '') {
   document.body.style.background = LT.bg;
   A.innerHTML = `<style>.lk{min-height:100vh;background:${LT.bg};color:${LT.digit};display:flex;flex-direction:column;align-items:center;justify-content:center;padding:32px 16px}
   .lk .logo-slot{font-size:15px;font-weight:600;letter-spacing:.18em;text-transform:uppercase;color:${LT.digit};border:1px dashed ${LT.border}80;border-radius:12px;padding:10px 16px}
-  .lk .sub{color:${LT.digit};opacity:.6;margin-top:18px;font-size:14px}.lk .dots i{border-color:${LT.dot}}.lk .dots i.f{background:${LT.dot}}
+  .lk .sub{color:${LT.digit};opacity:.6;margin-top:${LT.logo_gap}px;font-size:14px}.lk .dots i{border-color:${LT.dot}}.lk .dots i.f{background:${LT.dot}}
   .lk .kp{grid-template-columns:repeat(3,${LT.button_px}px)}.lk .kp button{width:${LT.button_px}px;height:${LT.button_px}px;border-radius:50%;background:${LT.glass};border:1px solid ${LT.border};color:${LT.digit};box-shadow:none;backdrop-filter:blur(14px);-webkit-backdrop-filter:blur(14px);font-weight:300}
   .lk .kp button:active{background:${LT.glass_active}}.lk .kp button.bk{border:0;background:none;font-size:22px}.lk .err{color:${LT.error};text-align:center}</style>
-  <div class="lk"><div class="logo-slot">${esc(LT.logo_text)}</div><div class="sub">${PIN_BLOB ? 'Введите PIN' : 'Вход не настроен'}</div>
-  <div class="dots" id="dots">${'<i></i>'.repeat(4)}</div><div class="err" id="err">${esc(msg)}</div>
+  <div class="lk">${LT.logo_src ? `<img src="${LT.logo_src}" alt="${esc(LT.logo_text)}" style="width:${LT.logo_w}px;height:auto">` : `<div class="logo-slot">${esc(LT.logo_text)}</div>`}<div class="dots" id="dots" aria-label="Введите PIN" style="margin-top:${LT.logo_gap}px">${'<i></i>'.repeat(4)}</div><div class="err" id="err">${esc(msg || (PIN_BLOB ? '' : 'Вход не настроен'))}</div>
   <div class="kp" id="kp">${[1, 2, 3, 4, 5, 6, 7, 8, 9].map(n => `<button data-k="${n}">${n}</button>`).join('')}<span></span><button data-k="0">0</button><button data-k="b" class="bk" aria-label="Стереть">⌫</button></div></div>`;
   $('#kp').onclick = e => { const b = e.target.closest('button'); if (b) key(b.dataset.k); };
   document.onkeydown = e => { if (!B && /^[0-9]$/.test(e.key)) key(e.key); else if (!B && e.key === 'Backspace') key('b'); };
@@ -67,18 +66,20 @@ function groupOf(d) {
 const G = id => C.decision_groups.find(g => g.id === id);
 const chipG = g => `<span class="chip solid" style="background:${g.color}">${esc(g.label)}</span>`;
 const tagName = t => (C.reason_tags[t] || {}).name || t;
+const adrChip = d => { const a = (C.address_sources || {})[d.address_source]; return a && a.chip ? ` <span class="chip ach" title="${esc(a.title)}">${esc(a.chip)}</span>` : ''; };
+const adrMiss = () => `<span class="na">${esc(C.address_missing)}</span>`;
 const approvedLater = d => (d.rres || '').toLowerCase().startsWith(C.reconsidered_approved_prefix);
 
 /* ---------- экраны ---------- */
-const TABS = [['parcel', 'Участок', '<path d="M4 7l8-4 8 4v10l-8 4-8-4z"/><path d="M4 7l8 4 8-4M12 11v10"/>'], ['grk', 'Решения', '<path d="M5 3h10l4 4v14H5z"/><path d="M15 3v4h4M8 12h8M8 16h8M8 8h4"/>'],
+const TABS = [['price', 'Оценка', '<path d="M4 19h16M7 16V9M12 16V5M17 16v-4"/>'], ['parcel', 'Участок', '<path d="M4 7l8-4 8 4v10l-8 4-8-4z"/><path d="M4 7l8 4 8-4M12 11v10"/>'], ['grk', 'Решения', '<path d="M5 3h10l4 4v14H5z"/><path d="M15 3v4h4M8 12h8M8 16h8M8 8h4"/>'],
   ['tep', 'ТЭП', '<rect x="4" y="3" width="16" height="18" rx="2"/><path d="M8 7h8M8 11h2M12 11h2M16 11h0M8 15h2M12 15h2M8 18h2M12 18h2M16 15v3"/>'],
-  ['law', 'Право', '<path d="M12 3v18M5 21h14M6 7h12M6 7l-3 7h6zM18 7l-3 7h6z"/>']];
+  ['law', 'Право', '<path d="M12 3v18M5 21h14M6 7h12M6 7l-3 7h6zM18 7l-3 7h6z"/>'], ['pdf', 'PDF', '<path d="M6 3h9l4 4v14H6z"/><path d="M15 3v4h4"/>', 'desk']];
 function render() {
-  const title = {parcel: 'Участок', grk: 'Решения ГРК', tep: 'Расчёт ТЭП', law: 'Правовые заметки'}[TAB];
-  A.innerHTML = `<div class="nav"><img src="${ICON}" alt=""><span class="t">${title}</span><span class="ex">тест</span></div><main id="m"></main>
-  <nav class="tabs">${TABS.map(([k, l, p]) => `<button data-t="${k}" class="${TAB === k ? 'on' : ''}"><svg viewBox="0 0 24 24">${p}</svg>${l}</button>`).join('')}</nav><div id="sh"></div>`;
-  A.querySelectorAll('.tabs button').forEach(b => b.onclick = () => { TAB = b.dataset.t; render(); scrollTo(0, 0); });
-  ({parcel: viewParcel, grk: viewGrk, tep: viewTep, law: viewLaw})[TAB]();
+  const title = {price: 'Оценка', parcel: 'Участок', grk: 'Решения ГРК', tep: 'Расчёт ТЭП', law: 'Правовые заметки'}[TAB];
+  A.innerHTML = `<div class="nav">${LOGO_H ? `<img src="${LOGO_H}" alt="MI Development" style="height:26px;width:auto">` : `<img src="${ICON}" alt="">`}<span class="t">${title}</span><nav class="dtabs">${TABS.map(([k, l]) => `<button data-t="${k}" class="${TAB === k ? 'on' : ''}">${l}</button>`).join('')}</nav></div><main id="m"></main>
+  <nav class="tabs">${TABS.filter(t => !t[3]).map(([k, l, p]) => `<button data-t="${k}" class="${TAB === k ? 'on' : ''}"><svg viewBox="0 0 24 24">${p}</svg>${l}</button>`).join('')}</nav><div id="sh"></div>`;
+  A.querySelectorAll('.tabs button,.dtabs button').forEach(b => b.onclick = () => { if (b.dataset.t === 'pdf') { const p = PARCEL || C.projects[0]; if (p) report(p); return; } TAB = b.dataset.t; render(); scrollTo(0, 0); });
+  ({price: viewPrice, parcel: viewParcel, grk: viewGrk, tep: viewTep, law: viewLaw})[TAB]();
 }
 
 function filtered(skipGroup) {
@@ -124,7 +125,9 @@ function drawList() {
   $('#lcap').textContent = `Решения · ${L.length} из ${B.decisions.length}`;
   $('#ls').innerHTML = L.length ? L.map(d => { const g = groupOf(d);
     return `<div class="card dc" data-id="${d.id}"><div class="top">${chipG(g)}<span class="chip">${esc(d.organ)}</span><span class="sm mu">${esc(d.date.replace(/ \(.*/, ''))}</span>${approvedLater(d) ? '<span class="chip" style="background:#EAF3FF;color:#0060C7">позже одобрено</span>' : ''}</div>
-    <h3>${d.address ? esc(d.address) : '<span class="na">Адрес не указан</span>'}</h3><div class="dev">${esc(d.dev) || '<span class="na">Застройщик не указан</span>'}</div>
+    <div class="pn">Протокол ${d.proto ? '№ ' + esc(d.proto) : 'без номера'} · ${esc(d.organ)} · ${esc(d.date.replace(/ \(.*/, ''))}</div>
+    <div class="adr">${d.address ? esc(d.address) + adrChip(d) : adrMiss()}</div>${d.cad ? `<div class="cadn">${esc(d.cad)}</div>` : ''}
+    <div class="dev">${esc(d.dev) || '<span class="na">Застройщик не указан</span>'}</div>
     ${d.tags.length ? `<div class="chips" style="margin-top:8px">${d.tags.map(t => `<span class="chip">${t} · ${esc(tagName(t))}</span>`).join('')}</div>` : ''}
     ${d.quote ? `<q>${esc(d.quote.length > 180 ? d.quote.slice(0, 177) + '…' : d.quote)}</q>` : ''}</div>`; }).join('') : '<div class="empty">Ничего не найдено</div>';
   $('#ls').querySelectorAll('.dc').forEach(c => c.onclick = () => detail(B.decisions[c.dataset.id]));
@@ -133,7 +136,7 @@ function detail(d) {
   const g = groupOf(d), row = (k, v) => v ? `<div class="li"><span>${k}</span><span>${v}</span></div>` : '';
   $('#sh').innerHTML = `<div class="sheet"><div><div class="grab"></div><button class="close" aria-label="Закрыть">✕</button>
   <div class="top" style="display:flex;gap:6px;flex-wrap:wrap;margin-top:6px">${chipG(g)}<span class="chip">${esc(d.organ)}</span></div>
-  <h1 style="font-size:22px;line-height:28px">${d.address ? esc(d.address) : 'Адрес не указан'}</h1>
+  <div class="pn" style="margin-top:10px">Протокол ${d.proto ? '№ ' + esc(d.proto) : 'без номера'} · ${esc(d.date)}</div><h1 class="adr" style="font-size:22px;line-height:28px;margin-top:4px">${d.address ? esc(d.address) + adrChip(d) : adrMiss()}</h1>${d.cad ? `<div class="cadn">${esc(d.cad)}</div>` : ''}${d.address_source && C.address_sources[d.address_source] ? `<div class="sm mu">${esc(C.address_sources[d.address_source].title)}</div>` : ''}
   ${g.hint ? `<div class="sm mu">${esc(g.hint)}</div>` : ''}
   <div class="cap">Заявка</div><div class="list kv">${row('Дата', esc(d.date))}${row('Застройщик', esc(d.dev))}${row('Район', esc(d.district))}${row('Кадастровый №', esc(d.cad))}
   ${row('Площадь участка', d.plot && esc(d.plot) + ' м²')}${row('Площадь объекта', d.area && esc(d.area) + ' м²')}${row('Этажность', esc(d.floors))}${row('КИТ', esc(d.kit))}${row('Функция', esc(d.func))}${row('Зона ПЗЗ', esc(d.pzz))}</div>
@@ -219,9 +222,9 @@ function viewTep() {
 function socChips(sc) { return sc.chip ? `<span class="chip" style="background:#EAF3FF;color:#0060C7">${esc(sc.chip)}</span>` : ''; }
 function tepTable(I, cls = 'wide') {
   const R = SCN().map(s => [s, tepCore(I, s.id)]), soc = R.filter(([s]) => s.group);
-  return `<table class="tt ${cls}"><thead><tr><th rowspan="${soc.length ? 2 : 1}"></th>${R.filter(([s]) => !s.group).map(([s]) => `<th rowspan="2">${esc(s.label)}</th>`).join('')}${soc.length ? `<th colspan="${soc.length}">${esc(soc[0][0].group)}<br>${socChips(soc[0][0])}</th>` : ''}</tr>
+  return `<div class="tw"><table class="tt ${cls}"><thead><tr><th rowspan="${soc.length ? 2 : 1}"></th>${R.filter(([s]) => !s.group).map(([s]) => `<th rowspan="2">${esc(s.label)}</th>`).join('')}${soc.length ? `<th colspan="${soc.length}">${esc(soc[0][0].group)}<br>${socChips(soc[0][0])}</th>` : ''}</tr>
   ${soc.length ? `<tr>${soc.map(([s]) => `<th>${esc(s.label)}</th>`).join('')}</tr>` : ''}</thead>
-  <tbody>${TEP_ROWS.map(([k, f]) => `<tr><td>${k}</td>${R.map(([, r]) => `<td>${r && !r.err ? f(r) : NA}</td>`).join('')}</tr>`).join('')}</tbody></table>`;
+  <tbody>${TEP_ROWS.map(([k, f]) => `<tr><td>${k}</td>${R.map(([, r]) => `<td>${r && !r.err ? f(r) : NA}</td>`).join('')}</tr>`).join('')}</tbody></table></div>`;
 }
 function calc() {
   const I = TEPI, r = tepCore(I, I.scen), sc = SCN().find(s => s.id === I.scen);
@@ -257,16 +260,67 @@ function gpzuRow(p, f) {
   return {color: st.color, title: st.title, action: st.action.replace('{until}', u), explain: f.explain,
     pdf: exp ? `ГПЗУ ${iss} истёк (${R.valid_years} года по ${R.src}; даже +${R.extension_years} год по ${R.extension_src} — истёк ${u}), ${st.action}` : `ГПЗУ ${iss} действует до ${u}`};
 }
+function vPrice(p, id) { const s = p.valuation.list.find(x => x.tep_id === id); return !s ? '—' : s.available ? mln(s.price) + (s.upper ? ' (предел)' : '') : esc(C.valuation_no_price); }
 function devTep(p, mode) {
   const T = p.tep_dev; if (!T) return '';
   const cell = x => x == null ? NA : (typeof x === 'number' ? nf(x) : esc(x));
-  if (mode === 'list') return `<div class="list out">${T.cols.map(([id, l], i) => `<div class="li"><span>${esc(l)}${T.cols_chip[id] ? ` <span class="chip" style="background:#EAF3FF;color:#0060C7;min-height:18px;font-size:10px">${esc(T.cols_chip[id])}</span>` : ''}<div class="sm mu">${esc(T.verdicts[id] || '')}</div></span><span>${T.rows[1][1][i] != null ? nf(T.rows[1][1][i]) + ' м²' : NA}</span></div>`).join('')}</div>`;
-  return `<table class="tt"><thead><tr><th></th>${T.cols.map(([id, l]) => `<th>${esc(l)}${T.cols_chip[id] ? `<br><span class="chip" style="background:#EAF3FF;color:#0060C7">${esc(T.cols_chip[id])}</span>` : ''}</th>`).join('')}</tr></thead>
-  <tbody>${T.rows.map(([k, v]) => `<tr><td>${esc(k)}</td>${v.map(x => `<td>${cell(x)}</td>`).join('')}</tr>`).join('')}<tr><td>Вывод</td>${T.cols.map(([id]) => `<td style="text-align:left">${esc(T.verdicts[id] || '')}</td>`).join('')}</tr></tbody></table>`;
+  if (mode === 'list') return `<div class="list out">${T.cols.map(([id, l], i) => `<div class="li"><span>${esc(l)}${T.cols_chip[id] ? ` <span class="chip" style="background:#EAF3FF;color:#0060C7;min-height:18px;font-size:10px">${esc(T.cols_chip[id])}</span>` : ''}<div class="sm mu">${esc(T.verdicts[id] || '')}</div></span><span>${T.rows[1][1][i] != null ? nf(T.rows[1][1][i]) + ' м²' : NA}${p.valuation ? `<div class="sm mu">${vPrice(p, id)}</div>` : ''}</span></div>`).join('')}</div>`;
+  return `<div class="tw"><table class="tt"><thead><tr><th></th>${T.cols.map(([id, l]) => `<th>${esc(l)}${T.cols_chip[id] ? `<br><span class="chip" style="background:#EAF3FF;color:#0060C7">${esc(T.cols_chip[id])}</span>` : ''}</th>`).join('')}</tr></thead>
+  <tbody>${T.rows.map(([k, v]) => `<tr><td>${esc(k)}</td>${v.map(x => `<td>${cell(x)}</td>`).join('')}</tr>`).join('')}<tr><td>Статус</td>${T.cols.map(([id]) => `<td>${T.col_status[id] ? dotL(T.col_status[id]) + ' ' + esc(T.col_status[id]) : ''}</td>`).join('')}</tr>${p.valuation ? `<tr><td>Цена участка (Оценщик)</td>${T.cols.map(([id]) => `<td><b>${vPrice(p, id)}</b></td>`).join('')}</tr>` : ''}<tr><td>Вывод</td>${T.cols.map(([id]) => `<td style="text-align:left">${esc(T.verdicts[id] || '')}</td>`).join('')}</tr></tbody></table></div>`;
+}
+const mln = x => x == null ? '—' : nf(x / 1e6) + ' млн ₽';
+const LOGO_H = 'logo-h.svg';
+// «выгоднее» — максимум цены среди базовых сценариев (без справочного верхнего предела и недоступных)
+function bestKey(V) { const c = V.list.filter(s => s.available && !s.upper && !s.reference); return c.length > 1 ? c.reduce((a, b) => b.price > a.price ? b : a).key : null; }
+const capLight = l => { const P = C.traffic_policy; if (!l) return ''; return l === 'зелёный' && !P.green_requires_met ? P.cap_without_official : l; };
+const dotL = l => l ? `<i class="dot8" style="background:${C.traffic[capLight(l)]}"></i>` : '';
+const bChip = t => `<span class="chip" style="background:#EAF3FF;color:#0060C7;min-height:18px;font-size:10px">${esc(t)}</span>`;
+const sTags = (s, V) => (s.base ? bChip('база') : '') + (s.upper ? `<span class="chip" style="min-height:18px;font-size:10px">верхний предел · справочно</span>` : '') + (s.reference ? `<span class="chip" style="min-height:18px;font-size:10px">справочно</span>` : '') + (s.key === bestKey(V) ? bChip(C.tep.soc.better_chip) : '');
+let VSEL = null, VPR = null;
+function sensAt(V, key, pr) {
+  const g = V.grid && V.grid[pr] && V.grid[pr][key]; if (g) return g;
+  const s = V.list.find(x => x.key === key), bp = Math.round(V.base_price / 1000); if (!s || !s.available) return null;
+  if (pr === bp) return {land: s.price, ...s.fin};
+  const pts = [[240, V.sens3[240]?.[key]], [bp, s.price], [300, V.sens3[300]?.[key]]].filter(x => x[1] != null).sort((a, b) => a[0] - b[0]);
+  for (let i = 0; i < pts.length - 1; i++) if (pr >= pts[i][0] && pr <= pts[i + 1][0]) { const t = (pr - pts[i][0]) / (pts[i + 1][0] - pts[i][0]); return {land: pts[i][1] + t * (pts[i + 1][1] - pts[i][1]), interp: true}; }
+  return null;
+}
+function express(p) {
+  const V = p.valuation, E = C.express; if (!V) return '';
+  const s = V.list.find(x => x.key === V.base), F = V.summary, kit = (p.tep_dev?.rows.find(r => r[0] === 'КИТ') || [])[1]?.[0] || nf(C.tep.kit.po_pravu, 1);
+  const tv = {flats_m2: s.tep.flats_m2 != null ? nf(s.tep.flats_m2) + ' м²' : NA, units: s.tep.units != null ? nf(s.tep.units) : NA, parking_total: s.tep.parking_total != null ? nf(s.tep.parking_total) : NA, kit: esc(kit)};
+  const bp = Math.round(V.base_price / 1000), s3 = V.sens3, sens = [s3[240]?.[V.base], s.price, s3[300]?.[V.base]];
+  const norm = k => E.normative[k] ? `<span class="nrm">${esc(E.normative[k])}</span>` : '';
+  return `<section class="ex"><div class="ex-k">${esc(E.title)} · ${esc(s.title.replace(/ — .*/, ''))}</div>
+  <div class="ex-p">${mln(s.price)}</div>
+  <div class="ex-s">${s.per_m2 ? nf(s.per_m2 / 1000, 1) + ' тыс. ₽/м²' : ''}${s.vs_cad ? ' · ' + nf(s.vs_cad, 2) + ' кадастровой' : ''}</div>
+  <div class="ex-t">${[['Выручка', F.rev], ['Затраты', F.costs], ['Прибыль', F.profit]].map(([l, x]) => `<div><span>${l}</span><b>${x != null ? nf(x / 1e6) : '—'}</b><em>млн ₽</em></div>`).join('')}</div>
+  <div class="ex-g">${E.tep.map(([k, l, u]) => `<div><span>${l}${norm(k)}</span><b>${tv[k]}</b></div>`).join('')}</div>
+  <div class="ex-l">${esc(E.sens_label)}: <b>${sens.map(x => x == null ? '—' : nf(x / 1e6)).join(' / ')} млн ₽</b><div class="sm mu">при цене квартир 240 / ${bp} / 300 тыс. ₽/м²</div></div>
+  <div class="sm mu">${esc(V.status)}</div></section>`;
+}
+function valBlock(p) {
+  const V = p.valuation; if (!V) return `<div class="card sm mu">${esc(p.valuation_status || 'ожидает оценки')}</div>`;
+  VSEL = VSEL || V.base; VPR = VPR ?? Math.round(V.base_price / 1000);
+  return `<div class="list">${V.list.map(s => `<div class="li vs ${s.key === VSEL ? 'sel' : ''}" data-s="${s.key}"><span style="display:flex;gap:8px;align-items:flex-start">${dotL(s.light) || '<i class="dot8"></i>'}<span>${esc(s.title)}<br>${sTags(s, V)}</span></span><span>${s.available ? mln(s.price) : `<span class="na">${esc(C.valuation_no_price)}</span>`}</span></div>`).join('')}</div>
+  <div class="card" id="vcard"></div><div class="sm mu" style="margin:6px 4px 0">${esc(V.status)}. Оценщик, ${esc(V.date || '')}.${V.recommended_note ? ' Рекомендация: ' + esc(V.recommended_note) + '.' : ''}</div>`;
+}
+function valDraw(p) {
+  const V = p.valuation, S = C.slider, el = $('#vcard'); if (!V || !el) return;
+  const s = V.list.find(x => x.key === VSEL), bp = Math.round(V.base_price / 1000);
+  if (!s.available) { el.innerHTML = `<div class="sm mu">${esc(s.title)}</div><div style="font-size:24px;font-weight:700;margin:4px 0">${esc(C.valuation_no_price)}</div><div class="sm">${esc(s.flag)}</div>`; return; }
+  const x = sensAt(V, VSEL, VPR);
+  el.innerHTML = `<div class="sm mu">${esc(s.title)} · цена участка</div><div style="font-size:34px;font-weight:700;letter-spacing:-.02em;line-height:40px">${x ? (x.interp ? '≈ ' : '') + mln(x.land) : NA}</div>
+  <div class="sm mu">${x && x.rev != null ? `выручка ${mln(x.rev)} · затраты ${mln(x.costs)} · прибыль ${mln(x.profit)}` : (x && x.interp ? 'интерполяция между точками модели' : '')}</div>
+  <div class="sm" style="margin-top:8px">${esc(s.flag)}</div>
+  <div style="display:flex;justify-content:space-between;margin-top:14px" class="sm"><span>${esc(S.label)}</span><b>${VPR}${VPR === bp ? ' · база' : ''}</b></div>
+  <input type="range" id="vsl" min="${S.min}" max="${S.max}" step="${S.step}" value="${VPR}" style="width:100%;accent-color:#007AFF;margin-top:6px">
+  <div class="sm mu" style="position:relative;height:16px"><span style="position:absolute;left:0">${S.min}</span><span style="position:absolute;left:${(bp - S.min) / (S.max - S.min) * 100}%;transform:translateX(-50%);color:#007AFF">▲ ${bp}</span><span style="position:absolute;right:0">${S.max}</span></div>`;
+  $('#vsl').oninput = e => { VPR = +e.target.value; valDraw(p); };
 }
 function trafficOf(p, dec) {
   const P = C.traffic_policy, rank = {'зелёный': 0, 'жёлтый': 1, 'красный': 2}, rows = [];
-  (p.legal_flags || []).filter(f => f.rule !== 'gpzu' || C.check_doc_terms).forEach(f => rows.push(f.rule === 'gpzu' ? gpzuRow(p, f) : {color: f.color, title: f.title, action: f.action, pdf: f.pdf, explain: f.explain}));
+  (p.legal_flags || []).filter(f => f.rule !== 'gpzu' || C.check_doc_terms).forEach(f => rows.push(f.rule === 'gpzu' ? gpzuRow(p, f) : {color: f.color, title: f.title, action: f.action, pdf: f.pdf, explain: f.explain, hint: f.hint}));
   if (!p.grk_note) dec.forEach(d => { const g = groupOf(d); if (g.id === 'refusal' || g.id === 'rework') rows.push({color: P.flags[g.id === 'refusal' ? 'grk_refusal' : 'grk_rework'], title: `${d.organ} ${d.date.replace(/ \(.*/, '')}`, action: g.label.toLowerCase(), pdf: `${d.organ} ${d.date}: ${g.label.toLowerCase()}`}); });
   const has = rows.length || Object.values(p.data || {}).some(v => v !== '' && v != null);
   if (!has) return {label: P.no_data.label, color: P.no_data.color, rows};
@@ -275,15 +329,24 @@ function trafficOf(p, dec) {
   return {label: w + (w !== 'красный' && !P.official_sources_connected ? ' · ' + P.cap_label : ''), color: C.traffic[w], rows};
 }
 const parcelDec = p => B.decisions.filter(d => (p.cad && d.cad === p.cad) || [].concat(p.dev_match || []).includes(d.dev));
+function viewPrice() {
+  const p = PARCEL || C.projects[0], M = $('#m'); PARCEL = p;
+  if (!p) return M.innerHTML = '<div class="card empty">Участков нет</div>';
+  M.innerHTML = `<h1>${esc(p.cad)}</h1><div class="sub">${esc((p.data || {}).address || '')}${p.district ? ' · ' + esc(p.district) + ' район' : ''}</div>${express(p)}<div class="cap">Сценарии</div>${valBlock(p)}
+  <button class="btn" id="pdf2">Справка PDF</button><button class="btn o" id="toP">Участок: статус и параметры</button>`;
+  M.querySelectorAll('.vs').forEach(e => e.onclick = () => { VSEL = e.dataset.s; M.querySelectorAll('.vs').forEach(z => z.classList.toggle('sel', z === e)); valDraw(p); });
+  valDraw(p); $('#pdf2').onclick = () => report(p); $('#toP').onclick = () => { TAB = 'parcel'; render(); scrollTo(0, 0); };
+}
 function viewParcel() {
   const M = $('#m');
   M.innerHTML = `<h1>Участок</h1><div class="sub">${esc(C.missing_sources)}</div>
   <div class="fl"><input class="srch" style="margin:0" id="cad" inputmode="numeric" placeholder="Кадастровый номер 78:…" value="${esc(PARCEL?.cad || '')}"><button class="btn" style="width:auto;margin:0;height:38px;padding:0 14px;font-size:15px" id="find">Открыть</button></div>
-  <div class="err" id="cerr"></div><div class="cap">Участки в работе</div><div id="pl"></div><div id="pv"></div>`;
+  <div class="err" id="cerr"></div><div id="pv"></div><div class="cap">Участки в работе</div><div id="pl"></div>`;
   $('#pl').innerHTML = C.projects.length ? C.projects.map(p => `<div class="card dc" data-c="${esc(p.cad)}"><div class="top"><span class="chip">${esc(p.region)}</span><span class="chip" style="background:#FFF4E5;color:#B25E00">${esc(p.status)}</span></div>
     <h3>${esc(p.cad)}</h3><div class="dev">${esc(p.title)}${p.district ? ' · ' + esc(p.district) + ' район' : ''}</div></div>`).join('') : '<div class="card empty">Участков пока нет</div>';
   $('#pl').querySelectorAll('.dc').forEach(c => c.onclick = () => { $('#cad').value = c.dataset.c; openCad(); });
   $('#find').onclick = openCad; $('#cad').onkeydown = e => e.key === 'Enter' && openCad();
+  if (!PARCEL && C.projects.length) PARCEL = C.projects[0];
   PARCEL ? drawParcel() : $('#pv').innerHTML = '<div class="card empty">Участок не выбран.<br>Введите кадастровый номер или выберите из списка.</div>';
 }
 function openCad() {
@@ -295,7 +358,7 @@ function openCad() {
 function legalSheet(r) {
   $('#sh').innerHTML = `<div class="sheet"><div><div class="grab"></div><button class="close" aria-label="Закрыть">✕</button>
   <div style="display:flex;align-items:center;gap:8px;margin-top:8px"><i class="dot8" style="background:${C.traffic[r.color]}"></i><b>${esc(r.color)}</b></div>
-  <h1 style="font-size:22px;line-height:28px">${esc(r.title)} · ${esc(r.action)}</h1><div class="cap">Юридический консультант</div><div class="card" style="font-size:15px">${esc(r.explain || r.pdf || '')}</div></div></div>`;
+  <h1 style="font-size:22px;line-height:28px">${esc(r.title)} · ${esc(r.action)}</h1><div class="cap">Юридический консультант</div><div class="card" style="font-size:15px">${esc(r.explain || r.pdf || '')}</div>${r.hint ? `<div class="sm mu" style="margin:8px 4px">${esc(r.hint)}</div>` : ''}</div></div>`;
   const s = $('.sheet'); s.onclick = e => { if (e.target === s || e.target.closest('.close')) $('#sh').innerHTML = ''; };
 }
 function drawParcel() {
@@ -316,11 +379,12 @@ function drawParcel() {
    : `<div class="cap">ТЭП «по праву» · ${esc(ph.label)}</div><div class="list out">${ph.rows.map(([k, v, u]) => `<div class="li"><span>${k}</span><span>${nf(v)}${u ? ' ' + u : ''}</span></div>`).join('')}</div>`}
   ${L ? `<div class="cap">Пределы по заключению КГА</div><div class="list out">${L.rows.map(([k, v]) => `<div class="li"><span>${esc(k)}</span><span>${esc(v)}</span></div>`).join('')}
    <div class="li"><span>${esc(L.dpt.label)}<div class="sm" style="color:#B25E00">${esc(L.dpt.flag)}</div></span><span>${esc(L.dpt.value)}</span></div></div><div class="sm mu" style="margin:6px 4px 0">${esc(L.src)}</div>` : ''}
-  <div class="cap">Цена участка (Оценщик)</div><div class="list">${SCN().map(s => `<div class="li"><span>${esc(s.group ? s.group + ': ' + s.label : s.label)}</span><span>${(d.prices || {})[s.id] ? esc(d.prices[s.id]) + ' ₽' : `<span class="na">${esc(p.valuation_status || C.tep.soc.price_status)}</span>`}</span></div>`).join('')}</div>
+
   <div class="cap">Решения ГРК и АГП${p.grk_note ? ' · ' + esc(p.grk_note) : ''}</div>${dec.length ? dec.map(x => `<div class="card sm">${chipG(groupOf(x))} ${esc(x.organ)} · ${esc(x.date)}<br><b>${esc(x.dev)}</b>${x.area ? ' · ' + esc(x.area) + ' м²' : ''}<br>${esc(x.quote || '')}</div>`).join('') : '<div class="card sm mu">Не найдено</div>'}
   <div class="cap">Чего не хватает · ${miss.length} из ${C.parcel_fields.length}</div><div class="card sm">${miss.map(([, l]) => esc(l)).join(', ') || 'всё есть'}</div>
   <button class="btn" id="pdf">Справка PDF</button>`;
   $('#pv').querySelectorAll('.lr').forEach(e => e.onclick = () => legalSheet(tr.rows[e.dataset.i]));
+
   $('#pdf').onclick = () => report(p);
   const sv = () => { manSet(p.cad, {area: $('#m_area').value.trim(), unit: $('#m_unit').value, zone: $('#m_zone').value.trim(), vri: $('#m_vri').value.trim()}); drawParcel(); };
   ['m_area', 'm_zone', 'm_vri'].forEach(id => $('#' + id).onchange = sv); $('#m_unit').onchange = sv;
@@ -330,24 +394,27 @@ function report(p, opt = {}) {
   const I = {region: p.region, cls: d.cls || 'комфорт', S: d.S, zouit: d.zouit_area, red: d.red, kcom: d.kcom, avg: d.avg, zone: d.parking_zone, urv: d.urv};
   const na = '<span class="na">нет данных</span>', v = k => d[k] ? esc(d[k]) + ((p.data || {})[k + '_src'] ? `<div class="mu">${esc(p.data[k + '_src'])}</div>` : '') : na;
   const miss = C.parcel_fields.filter(([k]) => d[k] == null || d[k] === '').map(([, l]) => l);
-  const socIds = SCN().filter(s => s.group).map(s => s.id), prices = d.prices || {};
-  const better = socIds.every(id => num(prices[id]) != null) ? socIds.reduce((a, b) => num(prices[a]) >= num(prices[b]) ? a : b) : null;
-  const priceRow = `<table class="tt"><thead><tr>${SCN().map(s => `<th>${esc(s.group ? s.group + ': ' + s.label : s.label)}${s.id === better ? `<br><span class="chip" style="background:#EAF3FF;color:#0060C7">${esc(C.tep.soc.better_chip)}</span>` : ''}</th>`).join('')}</tr></thead>
-    <tbody><tr>${SCN().map(s => `<td>${prices[s.id] ? esc(prices[s.id]) + ' ₽' : `<span class="na">${esc(p.valuation_status || C.tep.soc.price_status)}</span>`}</td>`).join('')}</tr></tbody></table>`;
+  const V = p.valuation, bk = V && bestKey(V);
+  const priceRow = V ? `<div class="tw"><table class="tt"><thead><tr>${V.list.map(s => `<th>${dotL(s.light)} ${esc(s.title)}${s.base ? '<br>база' : ''}${s.upper ? '<br>верхний предел · справочно' : ''}${s.key === bk ? `<br><span class="chip" style="background:#EAF3FF;color:#0060C7">${esc(C.tep.soc.better_chip)}</span>` : ''}</th>`).join('')}</tr></thead>
+    <tbody><tr>${V.list.map(s => `<td><b>${s.available ? mln(s.price) : esc(C.valuation_no_price)}</b></td>`).join('')}</tr></tbody></table></div><p class="sm mu">${esc(V.status)}</p>` : `<p class="na">${esc(p.valuation_status || 'ожидает оценки')}</p>`;
+  const bp = V && Math.round(V.base_price / 1000), bs = V && V.list.find(s => s.key === V.base);
+  const sensLine = V && V.sens3[240] && V.sens3[300] && bs ? `<p>«${esc(bs.title)}» при цене квартир 240 / ${bp} / 300 тыс. ₽/м²: <b>${[V.sens3[240][V.base], bs.price, V.sens3[300][V.base]].map(x => x == null ? '—' : nf(x / 1e6)).join(' / ')} млн ₽</b></p>` : '';
   const pages = [
-   `<div class="cov"><div class="sm mu">${esc(R.title)}</div><div class="pc">${esc(p.cad)}</div><div class="pa">${d.address ? esc(d.address) : 'Адрес: нет данных'}</div>
+   `<div class="cov">${LOGO_H ? `<img src="logo-h-dark.svg" alt="MI Development" style="height:40px;margin-bottom:28px">` : ''}<div class="sm mu">${esc(R.title)}</div><div class="pc">${esc(p.cad)}</div><div class="pa">${d.address ? esc(d.address) : 'Адрес: нет данных'}</div>
     <div class="mu">${esc(p.region)}${p.district ? ', ' + esc(p.district) + ' район' : ''} · ${now}</div></div>`,
    `<h2>Сводка</h2><div class="tl2"><i style="background:${tr.color}"></i><b>${esc(tr.label)}</b></div>${tr.rows.length ? `<h3>${esc(R.legal_title)}</h3><table class="tt kv2"><tbody>${tr.rows.map(r => `<tr><td style="width:20px"><i class="dot8" style="background:${C.traffic[r.color]}"></i></td><td>${esc(r.pdf || r.title + ' · ' + r.action)}</td></tr>`).join('')}</tbody></table>` : ''}
-    <h3>Итоговая цена участка по финмодели</h3>${priceRow}
+    <h3>Итоговая цена участка по финмодели</h3>${priceRow}${sensLine}
     <h3>Чего не хватает по участку</h3><p class="sm">${miss.map(esc).join(', ') || '—'}. ${esc(C.missing_sources)}</p>
-    <h2>ТЭП по сценариям</h2>${p.tep_dev ? `<p class="sm mu">${esc(p.tep_dev.src)} · ${esc(p.tep_dev.note)}</p>` + devTep(p, 'table') + '<div style="display:none">' : ''}${p.kga_limits ? `<p class="sm mu">Пределы КГА (КИТ 1,4): ${p.kga_limits.rows.map(([k, x]) => esc(k.replace(/ \(.*/, '') + ' ' + x)).join(' · ')}. ${esc(p.kga_limits.dpt.label)}: ${esc(p.kga_limits.dpt.value)} — ${esc(p.kga_limits.dpt.flag)}.</p>` : ''}${num(d.S) ? tepTable(I, 'pdf') + (d._manual ? '<p class="sm mu">Площадь введена вручную, справочно.</p>' : '') + (p.tep_dev ? '</div>' : '') : `<p class="sm mu">Площадь участка не передана. «По праву», ${esc(ph.label)}:</p><table class="tt kv2"><tbody>${ph.rows.map(([k, v, u]) => `<tr><td>${k}</td><td>${nf(v)}${u ? ' ' + u : ''}</td></tr>`).join('')}</tbody></table>`}`,
+`,
+   `<h2>ТЭП по сценариям</h2>${p.tep_dev ? `<p class="sm mu">${esc(p.tep_dev.src)} · ${esc(p.tep_dev.note)}</p>` + devTep(p, 'table') + '<div style="display:none">' : ''}${p.kga_limits ? `<p class="sm mu">Пределы КГА (КИТ 1,4): ${p.kga_limits.rows.map(([k, x]) => esc(k.replace(/ \(.*/, '') + ' ' + x)).join(' · ')}. ${esc(p.kga_limits.dpt.label)}: ${esc(p.kga_limits.dpt.value)} — ${esc(p.kga_limits.dpt.flag)}.</p>` : ''}${num(d.S) ? tepTable(I, 'pdf') + (d._manual ? '<p class="sm mu">Площадь введена вручную, справочно.</p>' : '') + (p.tep_dev ? '</div>' : '') : `<p class="sm mu">Площадь участка не передана. «По праву», ${esc(ph.label)}:</p><table class="tt kv2"><tbody>${ph.rows.map(([k, v, u]) => `<tr><td>${k}</td><td>${nf(v)}${u ? ' ' + u : ''}</td></tr>`).join('')}</tbody></table>`}`,
    `<h2>Градостроительная документация</h2><table class="tt kv2"><tbody>
     <tr><td>Зона ПЗЗ</td><td>${v('pzz')}</td></tr><tr><td>Предельная высота</td><td>${v('height')}</td></tr><tr><td>ППТ</td><td>${v('ppt')}</td></tr><tr><td>Кадастровая стоимость</td><td>${v('kad_value')}</td></tr><tr><td>Функциональная зона Генплана</td><td>${v('genplan')}</td></tr><tr><td>ВРИ по ЕГРН</td><td>${v('vri')}</td></tr>
     <tr><td>ЗОУИТ</td><td>${v('zouit')}</td></tr><tr><td>Зоны охраны ОКН</td><td>${v('okn')}</td></tr><tr><td>ГПЗУ</td><td>${v('gpzu')}</td></tr></tbody></table>
     <h3>Решения ГРК и АГП${p.grk_note ? ' · ' + esc(p.grk_note) : ''}</h3>${dec.length ? `<table class="tt kv2"><tbody>${dec.map(x => `<tr><td>${esc(x.organ)} · ${esc(x.date)}</td><td>${esc(groupOf(x).label)} · ${esc(x.dev)}${x.quote ? ': «' + esc(x.quote) + '»' : ''}</td></tr>`).join('')}</tbody></table>` : '<p class="na">Решений по участку в базе нет</p>'}
-    <h2>Нормативы и источники</h2><table class="tt kv2"><tbody>${R.norms.map(([a, b, c]) => `<tr><td>${esc(a)}</td><td>${esc(b)}<div class="mu">${esc(c)}</div></td></tr>`).join('')}</tbody></table>
-    <h2>Финмодель</h2><table class="tt"><thead><tr><th>Выручка</th><th>Затраты</th><th>Прибыль</th></tr></thead><tbody><tr>${['revenue', 'costs', 'profit'].map(k => `<td>${(d.fin || {})[k] ? esc(d.fin[k]) + ' ₽' : na}</td>`).join('')}</tr></tbody></table>`];
-  const ft = (i) => `<div class="pf" style="font-size:${R.footer_px}px;color:${R.footer_color}"><span class="logo-slot">${esc(R.logo_slot)}</span><span>${i + 1} / ${pages.length}</span></div>`;
+`,
+   `<h2>Нормативы и источники</h2><table class="tt kv2"><tbody>${R.norms.map(([a, b, c]) => `<tr><td>${esc(a)}</td><td>${esc(b)}<div class="mu">${esc(c)}</div></td></tr>`).join('')}</tbody></table>
+    <h2>Финмодель${bs ? ' · ' + esc(bs.title) : ''}</h2><table class="tt"><thead><tr><th>Выручка</th><th>Затраты</th><th>Прибыль</th></tr></thead><tbody><tr>${['rev', 'costs', 'profit'].map(k => `<td>${V && V.summary[k] != null ? mln(V.summary[k]) : na}</td>`).join('')}</tr></tbody></table>${V ? `<p class="sm mu">${esc(V.status)}</p>` : ''}`];
+  const ft = (i) => `<div class="pf" style="font-size:${R.footer_px}px;color:${R.footer_color}">${LOGO_H ? `<img src="logo-h-dark.svg" alt="MI Development" style="height:12px">` : `<span class="logo-slot">${esc(R.logo_slot)}</span>`}<span>${i + 1} / ${pages.length}</span></div>`;
   let el = $('#print'); if (!el) { el = document.createElement('div'); el.id = 'print'; document.body.appendChild(el); }
   el.innerHTML = pages.map((h, i) => `<section class="pg">${opt.sample ? '<div class="wm">ПРИМЕР</div>' : ''}${h}${ft(i)}</section>`).join('');
   document.body.classList.add('printing');
