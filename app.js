@@ -1,6 +1,6 @@
 'use strict';
 /* Development App — код без данных. Данные: закрытый репозиторий DATA_REPO, ключ GitHub хранится на устройстве, зашифрован PIN-кодом. */
-const DATA_REPO = 'makc178/claims-registry-data', DATA_FILE = 'devapp/bundle.json', PIN_BLOB = {"v": 1, "bv": 1792016526, "kdf": "PBKDF2-SHA256", "iterations": 600000, "salt": "+O55Z1gQBEyTgsoEk6gGrQ==", "iv": "LXQNdLX55e86LlKZ", "ct": "hVZGpLWoiNHVs1okUDQq8L9+bQJbLRnhrcrXEj4ld9CIuAxSk0Yccg1WPp4CLo3iw+JMPC/HqPdEIdWCTEXunO0JtxrrClUo06LXb4LH+ToztA9EvgZyCnyHALmM0S5AmxCbKt5dD1Kxs3k401JdPX38Zao="}, LT = {"bg": "#14213D", "digit": "#EFE6D2", "border": "#C9A45C", "dot": "#C9A45C", "glass": "rgba(255,255,255,.06)", "glass_active": "rgba(201,164,92,.18)", "button_px": 72, "logo_text": "MI Development", "error": "#E8A39B", "logo_src": "logo.svg", "logo_w": 96, "logo_gap": 32};
+const DATA_REPO = 'makc178/claims-registry-data', DATA_FILE = 'devapp/bundle.json', PIN_BLOB = {"v": 1, "bv": 1792016671, "kdf": "PBKDF2-SHA256", "iterations": 600000, "salt": "0a7I8PZZpFMdemXFMGy+Kg==", "iv": "bixVflIcLOQaS81F", "ct": "mfV/3sAn5dDxRApGeM38oK9mNVix4xW9Cx8n542KkAateZ18+LXdjPKEaZqXgeqnSXSBffIHW2cuyVYG7J2H3fPbng1snUd5/02CZ9c0ZXbVeQgmiCgJsqj5oNOTKsacKSt9Mr5zALn3ySeoxGV/X5fT590="}, LT = {"bg": "#14213D", "digit": "#EFE6D2", "border": "#C9A45C", "dot": "#C9A45C", "glass": "rgba(255,255,255,.06)", "glass_active": "rgba(201,164,92,.18)", "button_px": 72, "logo_text": "MI Development", "error": "#E8A39B", "logo_src": "logo.svg", "logo_w": 96, "logo_gap": 32};
 const $ = s => document.querySelector(s), A = $('#app');
 const esc = s => String(s ?? '').replace(/[&<>"']/g, c => ({'&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;'}[c]));
 const nf = (n, d = 0) => (n == null || !isFinite(n)) ? '—' : n.toLocaleString('ru-RU', {maximumFractionDigits: d, minimumFractionDigits: 0});
@@ -23,7 +23,7 @@ async function unblob(pin) {
   const t = td.decode(await crypto.subtle.decrypt({name: 'AES-GCM', iv: ub64(B0.iv)}, key, ub64(B0.ct)));
   if (!t.startsWith('devapp:')) throw new Error('bad'); return t.slice(7);
 }
-let PINV = '', BUSY = false;
+let PINV = '', BUSY = false, TOKEN = null;
 function lockScreen(msg = '') {
   PINV = '';
   document.body.style.background = LT.bg;
@@ -45,7 +45,7 @@ async function key(k) {
   BUSY = true; $('#err').textContent = 'Проверяю…';
   let tok;
   try { tok = await unblob(PINV); } catch { BUSY = false; PINV = ''; dots(); $('#err').textContent = 'Неверный PIN'; return; }
-  try { await load(tok); document.onkeydown = null; } catch (e) { $('#err').textContent = e.message; PINV = ''; dots(); }
+  try { await load(tok); TOKEN = tok; document.onkeydown = null; } catch (e) { $('#err').textContent = e.message; PINV = ''; dots(); }
   BUSY = false;
 }
 async function load(tok) {
@@ -285,6 +285,30 @@ function sensAt(V, key, pr) {
   for (let i = 0; i < pts.length - 1; i++) if (pr >= pts[i][0] && pr <= pts[i + 1][0]) { const t = (pr - pts[i][0]) / (pts[i + 1][0] - pts[i][0]); return {land: pts[i][1] + t * (pts[i + 1][1] - pts[i][1]), interp: true}; }
   return null;
 }
+function fmTable(V) {
+  const F = V.finmodel; if (!F) return '';
+  const nrm = x => x.norm ? ' <span class="nrm">норматив</span>' : '';
+  const sec = n => F.items.filter(x => x.section === n);
+  const rows = n => sec(n).map(x => `<tr><td>${esc(x.name)}${nrm(x)}</td><td class="fp">${esc(x.parameter || '')}</td><td>${nf(x.amount_mln_rub, 1)}</td></tr>`).join('');
+  const T = F.totals || {};
+  return `<div class="tw"><table class="tt fm"><thead><tr><th>Статья</th><th>Единичный параметр</th><th>Сумма, млн ₽</th></tr></thead><tbody>
+   <tr class="fs"><td colspan="3">Выручка</td></tr>${rows('Выручка')}<tr class="ft"><td colspan="2">Выручка, итого</td><td>${nf(T.revenue_mln_rub, 1)}</td></tr>
+   <tr class="fs"><td colspan="3">Затраты</td></tr>${rows('Затраты')}<tr class="ft"><td colspan="2">Затраты, итого</td><td>${nf(T.costs_mln_rub, 1)}</td></tr>
+   <tr class="ft"><td colspan="2">Прибыль${T.margin != null ? ' (маржа ' + nf(T.margin * 100, 1) + '%)' : ''}</td><td>${nf(T.profit_mln_rub, 1)}</td></tr></tbody></table></div>
+  <div class="cap">Денежный поток по годам, ${esc(F.units || 'млн ₽')}</div>${fmBars(F)}${F.cashflow_note ? `<div class="sm mu">${esc(F.cashflow_note)}</div>` : ''}
+  ${(F.assumptions || []).length ? `<div class="cap">Допущения</div><div class="tw"><table class="tt kv2"><tbody>${F.assumptions.map(a => `<tr><td>${esc(a.name)}${a.norm ? ' <span class="nrm">норматив</span>' : ''}</td><td>${esc(a.value)}</td></tr>`).join('')}</tbody></table></div>` : ''}`;
+}
+function fmBars(F) {
+  const Y = F.cashflow_annual || []; if (!Y.length) return '';
+  const mx = Math.max(...Y.map(y => Math.max(y.inflow_mln_rub || 0, y.outflow_mln_rub || 0)), 1);
+  return `<div class="cf">${Y.map(y => `<div class="cfy"><div class="cfn">${(y.net_mln_rub > 0 ? '+' : '') + nf(y.net_mln_rub)}</div><div class="cfb"><i class="ci" style="height:${(y.inflow_mln_rub || 0) / mx * 100}%"></i><i class="co" style="height:${(y.outflow_mln_rub || 0) / mx * 100}%"></i></div><div class="cfl">${esc(String(y.year).replace(/ \(.*/, ''))}</div></div>`).join('')}</div>
+  <div class="sm mu"><i class="lg" style="background:#14213D;border:1px solid #C9A45C"></i>выручка <i class="lg" style="background:#8E8E93"></i>затраты · над столбцом — итог года</div>`;
+}
+async function dlXlsx(path) {
+  const r = await fetch(`https://api.github.com/repos/${DATA_REPO}/contents/${path}?ref=main`, {headers: ghH(TOKEN), cache: 'no-store'});
+  if (!r.ok) return alert('Файл недоступен: GitHub ' + r.status);
+  const u = URL.createObjectURL(await r.blob()), a = document.createElement('a'); a.href = u; a.download = 'finmodel.xlsx'; document.body.appendChild(a); a.click(); a.remove(); setTimeout(() => URL.revokeObjectURL(u), 5000);
+}
 function express(p) {
   const V = p.valuation, E = C.express; if (!V) return '';
   const s = V.list.find(x => x.key === V.base), F = V.summary, kit = (p.tep_dev?.rows.find(r => r[0] === 'КИТ') || [])[1]?.[0] || nf(C.tep.kit.po_pravu, 1);
@@ -333,7 +357,9 @@ function viewPrice() {
   const p = PARCEL || C.projects[0], M = $('#m'); PARCEL = p;
   if (!p) return M.innerHTML = '<div class="card empty">Участков нет</div>';
   M.innerHTML = `<h1>${esc(p.cad)}</h1><div class="sub">${esc((p.data || {}).address || '')}${p.district ? ' · ' + esc(p.district) + ' район' : ''}</div>${express(p)}<div class="cap">Сценарии</div>${valBlock(p)}
+  ${p.valuation?.finmodel ? `<details class="card fmd"><summary>Базовая финмодель</summary>${fmTable(p.valuation)}${p.valuation.finmodel_xlsx ? '<button class="btn o" id="xl">Скачать finmodel.xlsx</button>' : ''}</details>` : ''}
   <button class="btn" id="pdf2">Справка PDF</button><button class="btn o" id="toP">Участок: статус и параметры</button>`;
+  if ($('#xl')) $('#xl').onclick = () => dlXlsx(p.valuation.finmodel_xlsx);
   M.querySelectorAll('.vs').forEach(e => e.onclick = () => { VSEL = e.dataset.s; M.querySelectorAll('.vs').forEach(z => z.classList.toggle('sel', z === e)); valDraw(p); });
   valDraw(p); $('#pdf2').onclick = () => report(p); $('#toP').onclick = () => { TAB = 'parcel'; render(); scrollTo(0, 0); };
 }
@@ -413,7 +439,7 @@ function report(p, opt = {}) {
     <h3>Решения ГРК и АГП${p.grk_note ? ' · ' + esc(p.grk_note) : ''}</h3>${dec.length ? `<table class="tt kv2"><tbody>${dec.map(x => `<tr><td>${esc(x.organ)} · ${esc(x.date)}</td><td>${esc(groupOf(x).label)} · ${esc(x.dev)}${x.quote ? ': «' + esc(x.quote) + '»' : ''}</td></tr>`).join('')}</tbody></table>` : '<p class="na">Решений по участку в базе нет</p>'}
 `,
    `<h2>Нормативы и источники</h2><table class="tt kv2"><tbody>${R.norms.map(([a, b, c]) => `<tr><td>${esc(a)}</td><td>${esc(b)}<div class="mu">${esc(c)}</div></td></tr>`).join('')}</tbody></table>
-    <h2>Финмодель${bs ? ' · ' + esc(bs.title) : ''}</h2><table class="tt"><thead><tr><th>Выручка</th><th>Затраты</th><th>Прибыль</th></tr></thead><tbody><tr>${['rev', 'costs', 'profit'].map(k => `<td>${V && V.summary[k] != null ? mln(V.summary[k]) : na}</td>`).join('')}</tr></tbody></table>${V ? `<p class="sm mu">${esc(V.status)}</p>` : ''}`];
+    <h2>Финмодель${bs ? ' · ' + esc(bs.title) : ''}</h2><table class="tt"><thead><tr><th>Выручка</th><th>Затраты</th><th>Прибыль</th></tr></thead><tbody><tr>${['rev', 'costs', 'profit'].map(k => `<td>${V && V.summary[k] != null ? mln(V.summary[k]) : na}</td>`).join('')}</tr></tbody></table>${V ? `<p class="sm mu">${esc(V.status)}</p>` : ''}`].concat(V && V.finmodel ? [`<h2>Приложение. Базовая финмодель</h2><p class="sm mu">${esc((V.list.find(s => s.key === V.finmodel.scenario) || {}).title || '')} · ${esc(V.status)}</p>${fmTable(V)}`] : []);
   const ft = (i) => `<div class="pf" style="font-size:${R.footer_px}px;color:${R.footer_color}">${LOGO_H ? `<img src="logo-h-dark.svg" alt="MI Development" style="height:12px">` : `<span class="logo-slot">${esc(R.logo_slot)}</span>`}<span>${i + 1} / ${pages.length}</span></div>`;
   let el = $('#print'); if (!el) { el = document.createElement('div'); el.id = 'print'; document.body.appendChild(el); }
   el.innerHTML = pages.map((h, i) => `<section class="pg">${opt.sample ? '<div class="wm">ПРИМЕР</div>' : ''}${h}${ft(i)}</section>`).join('');
