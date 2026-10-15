@@ -1,6 +1,6 @@
 'use strict';
 /* Development App — код без данных. Данные: закрытый репозиторий DATA_REPO, ключ GitHub хранится на устройстве, зашифрован PIN-кодом. */
-const DATA_REPO = 'makc178/claims-registry-data', DATA_FILE = 'devapp/bundle.json', PIN_BLOB = {"v": 1, "kind": "write", "bv": 1792074386, "kdf": "PBKDF2-SHA256", "iterations": 600000, "salt": "bJkA7z3F/ZZeLJsEzZSlfg==", "iv": "bfdtwmvlooErLia6", "ct": "KKLbIviGfzxY+C6EnUU5conipmTrPQOG2NV75zU5X+SOpeylzOleQNgMH8f5iyx2Qg9ne7la6Qu5SgTsKJ4yLhIYkxG3FiDo/mZbckm3lMXrdI+71/jpvGo2Lfxwdt9AODzmFgaUUfpv1h2tqeZRIrFiw+o="}, LT = {"bg": "#14213D", "digit": "#EFE6D2", "border": "#C9A45C", "dot": "#C9A45C", "glass": "rgba(255,255,255,.06)", "glass_active": "rgba(201,164,92,.18)", "button_px": 72, "logo_text": "MI Development", "error": "#E8A39B", "logo_src": "logo.svg", "logo_w": 96, "logo_gap": 32, "mark_h": 72, "wm_gap": 16, "wm1": "MI DEVELOPMENT", "wm1_font": "MI Bodoni", "wm1_px": 22, "wm1_w": 500, "wm1_ls": "0.2em", "wm1_color": "#EFE6D2", "wm2_gap": 6, "wm2": "Development App", "wm2_font": "MI Inter", "wm2_px": 11, "wm2_ls": "0.3em", "wm2_color": "#C9A45C"};
+const DATA_REPO = 'makc178/claims-registry-data', DATA_FILE = 'devapp/bundle.json', PIN_BLOB = {"v": 1, "kind": "write", "bv": 1792074802, "kdf": "PBKDF2-SHA256", "iterations": 600000, "salt": "jmDxlASAWHQVZasrQBTXSA==", "iv": "4HDPhSo8uPPMp/NT", "ct": "I3N5soOoMKxrLfoNcU28aa44GX5cTy1PFHmTIbVnj7XZ+iWvxQdqU8MbrU4g87Rd2jCysLYzW7dttZcvWvSyfEax1h87xMgmVxY/UkUFg8E+u1DI0JlTmF4N+6hQAuBZx3vMORvuMB1CX9IWyNTLaN+RdZs="}, LT = {"bg": "#14213D", "digit": "#EFE6D2", "border": "#C9A45C", "dot": "#C9A45C", "glass": "rgba(255,255,255,.06)", "glass_active": "rgba(201,164,92,.18)", "button_px": 72, "logo_text": "MI Development", "error": "#E8A39B", "logo_src": "logo.svg", "logo_w": 96, "logo_gap": 32, "mark_h": 72, "wm_gap": 16, "wm1": "MI DEVELOPMENT", "wm1_font": "MI Bodoni", "wm1_px": 22, "wm1_w": 500, "wm1_ls": "0.2em", "wm1_color": "#EFE6D2", "wm2_gap": 6, "wm2": "Development App", "wm2_font": "MI Inter", "wm2_px": 11, "wm2_ls": "0.3em", "wm2_color": "#C9A45C"};
 const $ = s => document.querySelector(s), A = $('#app');
 const esc = s => String(s ?? '').replace(/[&<>"']/g, c => ({'&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;'}[c]));
 const nf = (n, d = 0) => (n == null || !isFinite(n)) ? '—' : n.toLocaleString('ru-RU', {maximumFractionDigits: d, minimumFractionDigits: 0});
@@ -662,10 +662,13 @@ function sysSteps(st) {
       : s.state === 'failed' ? `${L.failed}: ${esc(s.error || '')}<br>${esc(S.failed_note.replace('{who}', d.who))}` : `${L.wait} · ${esc(d.desc)}`;
     return `<div class="sy-st s-${s.state}"><span class="sy-n">${s.state === 'done' ? '✓' : s.state === 'failed' ? '!' : i + 1}</span><div><b>${esc(d.title)}</b>${d.tag ? ` <span class="chip sy-tag">${esc(d.tag)}</span>` : ''}<div class="sm mu">${sub}</div></div></div>`; }).join('')}</div>`;
 }
+const FST = st => { const F = SC().flag_styles || {}; return ((st.legal || {}).price_flags || []).map(f => [f.code, F[f.code]]).filter(([, x]) => x && x.capsule); };
+const capC = (t, color, code) => `<span class="sy-mk ${color === 'amber' ? 'amb' : color === 'red' ? 'red' : ''}"${code ? ` data-code="${esc(code)}"` : ''}>${esc(t)}</span>`;
+const lineDot = a => { if (a.dot) return a.dot; const t = a.text || a.label || ''; return ((SC().line_styles || []).find(([rx]) => new RegExp(rx, 'i').test(t)) || [, 'amber'])[1]; };
 const mkCap = m => m ? ` <span class="sy-mk ${m === SC().mark_amber ? 'amb' : ''}">${esc(m)}</span>` : '';
 function sysParams(st) {
   const p = st.parcel || {}, M = p.marks || {}, rows = [['Кадастровый номер', p.cad], ['Адрес', p.address, 'address'], ['Площадь', p.area_m2 ? nf(+p.area_m2) + ' м²' : '', 'area_m2'], ['Категория', p.category, 'category'], ['ВРИ', p.vri, 'vri'], ['Зона', p.zone, 'zone'], ['Права', p.rights, 'rights'], ['ГПЗУ', p.gpzu], ['Кадастровая стоимость', p.cad_value_rub ? mlnS(+p.cad_value_rub) : '', 'cad_value_rub']].filter(r => r[1]);
-  return rows.length ? `<div class="cap">${esc(SC().params_title)}</div><div class="list kv sy-params">${rows.map(([k, v, f]) => `<div class="li"><span>${esc(k)}</span><span>${esc(v)}${mkCap(M[f])}</span></div>`).join('')}</div>` : '';
+  return rows.length ? `<div class="cap">${esc(SC().params_title)}</div><div class="list kv sy-params">${rows.map(([k, v, f]) => `<div class="li"><span>${esc(k)}</span><span>${esc(v)}${mkCap(M[f])}${(p.marks_src || {})[f] ? `<div class="sm mu">${esc(SC().src_mark_text)}</div>` : ''}</span></div>`).join('')}</div>` : '';
 }
 function sysScen(V) {  // база, затем по убыванию цены, недоступные в конце
   return [...V.scenarios].sort((a, b) => (b.base - a.base) || ((b.available ? 1 : 0) - (a.available ? 1 : 0)) || ((b.price || 0) - (a.price || 0)));
@@ -673,7 +676,7 @@ function sysScen(V) {  // база, затем по убыванию цены, �
 function sysFlags(st) {  // риски — только из legal.json → price_flags; плюс строка о правах
   const Lg = st.legal || {}, rows = [];
   if (Lg.rights) rows.push({color: Lg.rights === 'аренда' ? 'жёлтый' : 'зелёный', title: Lg.rights[0].toUpperCase() + Lg.rights.slice(1), text: Lg.holder_type || ''});
-  (Lg.price_flags || []).forEach(f => rows.push({color: ({red: 'красный', yellow: 'жёлтый', green: 'зелёный'})[f.light] || f.light || 'жёлтый', title: f.text, text: f.source || '', type: f.type}));
+  (Lg.price_flags || []).forEach(f => rows.push({color: ({red: 'красный', yellow: 'жёлтый', green: 'зелёный'})[f.light] || f.light || 'жёлтый', title: f.text, text: f.source || '', type: f.type, code: f.code}));
   if (!(Lg.price_flags || []).length) rows.push({color: 'зелёный', title: SC().flags_none, text: ''});
   return rows;
 }
@@ -682,16 +685,17 @@ function sysCard(st) {
   const rng = V.range && V.range_prices ? `<div class="sy-range"><span>${mlnS(V.range[0])} – ${mlnS(V.range[V.range.length - 1])}</span><div class="sm mu">${esc(S.range_label.replace('{a}', V.range_prices[0]).replace('{b}', V.range_prices[V.range_prices.length - 1]))}${V.area_m2 ? ' · ' + thS(V.range[0] / V.area_m2) + ' – ' + thS(V.range[V.range.length - 1] / V.area_m2) : ''}</div></div>` : '';
   const scale = V.range && b.price ? (() => { const lo = Math.min(V.range[0], b.price), hi = Math.max(V.range[V.range.length - 1], b.price), pos = hi > lo ? (b.price - lo) / (hi - lo) * 100 : 50;
     return `<div class="sy-scale"><i style="left:${pos}%"></i></div>`; })() : '';
-  const alts = (b.alt || []).map((a, i) => `<div class="sy-alt" id="alt${i}" data-ft="${esc((a.flag_types || []).join(' '))}"><i></i><span>${altTxt(a)}</span></div>`).join('');
+  const alts = (b.alt || []).filter(a => a.text || a.price != null).map((a, i) => `<div class="sy-alt d-${lineDot(a)}" id="alt${i}" data-ft="${esc((a.flag_types || []).join(' '))}"><i></i><span>${altTxt(a)}</span></div>`).join('');
   const tiles = [['Выручка', b.rev], ['Затраты', b.costs], ['Прибыль', b.profit]];
   return `<section class="card sy-price"><div class="cap" style="margin-top:0">${esc(S.price_cap)} · ${esc(b.short || '')}</div>
-   <div class="sy-pv">${mlnS(b.price)}${mkCap(b.mark)}</div>${b.urv ? `<div class="sy-urv"><span class="sy-mk amb" style="margin:0 6px 0 0">${esc(S.urv_chip)}</span>${esc(S.urv_line)}</div>` : ''}${b.price_note ? `<div class="sm mu sy-pnote">${esc(b.price_note)}</div>` : ''}
+   ${FST(st).filter(([, x]) => x.place === 'above').length ? `<div class="sy-above">${FST(st).filter(([, x]) => x.place === 'above').map(([c, x]) => capC(x.capsule, x.color, c)).join('')}</div>` : ''}
+   <div class="sy-pv">${mlnS(b.price)}${mkCap(b.mark)}</div>${FST(st).filter(([, x]) => x.place === 'price' && (!x.scenario || !(S.flag_scope_exclude || []).includes(b.key))).length ? `<div class="sy-pcaps">${FST(st).filter(([, x]) => x.place === 'price').map(([c, x]) => capC(x.capsule, x.color)).join('')}</div>` : ''}${FST(st).filter(([, x]) => x.line).map(([, x]) => `<div class="sy-urv">${esc(x.line)}</div>`).join('')}${b.price_note ? `<div class="sm mu sy-pnote">${esc(b.price_note)}</div>` : ''}
    <div class="sy-pm">${thS(b.per_m2)} участка${b.vs_cad ? ' · ' + nf(b.vs_cad, 2) + ' кадастровой' : ''}</div>${alts}${scale}${rng}
    <div class="sy-tiles">${tiles.map(([l, v]) => `<div><span class="mu sm">${l}</span><b>${v != null ? nf(v / 1e6) : '—'}</b><em class="sm mu">млн ₽</em></div>`).join('')}</div></section>
-  <div class="cap">${esc(S.flags_title)}</div><div class="list sy-flags">${ff.map(r => `<div class="li sy-flag" data-type="${esc(r.type || '')}"><span style="display:flex;gap:10px;align-items:flex-start"><i class="dot8" style="background:${C.traffic[r.color] || '#AEAEB2'};margin-top:6px"></i><span>${esc(r.title)}${r.text ? `<div class="sm mu">${esc(r.text)}</div>` : ''}</span></span></div>`).join('')}</div>
-  <div class="cap">${esc(S.scen_title)}</div><div class="list sy-scen">${sysScen(V).map(s => `<div class="li sy-sc ${s.base ? 'base' : ''} ${s.available ? '' : 'off'}"><span><span class="sy-sct">${dotL(s.light)}<b>${esc(s.short)}</b>${s.base ? ` <span class="chip sy-tag">${esc(S.base_chip)}</span>` : ''}${!s.available ? ` <span class="chip sy-tag off">${esc(S.unavailable)}</span>` : ''}${s.urv ? ` <span class="sy-mk amb">${esc(S.urv_chip)}</span>` : ''}</span>
+  <div class="cap">${esc(S.flags_title)}</div><div class="list sy-flags">${ff.map(r => `<div class="li sy-flag" data-type="${esc(r.type || '')}" data-code="${esc(r.code || '')}"><span style="display:flex;gap:10px;align-items:flex-start"><i class="dot8" style="background:${C.traffic[r.color] || '#AEAEB2'};margin-top:6px"></i><span>${esc(r.title)}${r.text ? `<div class="sm mu">${esc(r.text)}</div>` : ''}</span></span></div>`).join('')}</div>
+  <div class="cap">${esc(S.scen_title)}</div><div class="list sy-scen">${sysScen(V).map(s => `<div class="li sy-sc ${s.base ? 'base' : ''} ${s.available ? '' : 'off'}"><span><span class="sy-sct">${dotL(s.light)}<b>${esc(s.short)}</b>${s.base ? ` <span class="chip sy-tag">${esc(S.base_chip)}</span>` : ''}${!s.available ? ` <span class="chip sy-tag off">${esc(S.unavailable)}</span>` : ''}${s.available && !(S.flag_scope_exclude || []).includes(s.key) ? FST(st).filter(([, x]) => x.scenario).map(([c, x]) => capC(x.capsule, x.color)).join('') : ''}</span>
     <div class="sm mu">${[s.kit ? 'КИТ ' + nf(s.kit, 1) : '', s.flats_m2 ? 'квартиры ' + nf(s.flats_m2) + ' м²' : ''].filter(Boolean).join(' · ')}${s.cond ? `<br><span class="sy-cond">${esc(s.cond)}</span>` : ''}${s.flag ? `<br>${esc(s.flag)}` : ''}</div></span>
-    <span class="sy-scp">${s.available ? mlnS(s.price) : '—'}<div class="sm mu">${s.available ? thS(s.per_m2) : ''}</div>${s.available && s.mark ? `<div>${mkCap(s.mark)}</div>` : ''}</span>${s.urv ? `<div class="sy-urv">${esc(S.urv_line)}</div>` : ''}</div>`).join('')}</div>
+    <span class="sy-scp">${s.available ? mlnS(s.price) : '—'}<div class="sm mu">${s.available ? thS(s.per_m2) : ''}</div>${s.available && s.mark ? `<div>${mkCap(s.mark)}</div>` : ''}</span>${s.available && !(S.flag_scope_exclude || []).includes(s.key) ? FST(st).filter(([, x]) => x.scenario && x.line).map(([, x]) => `<div class="sy-urv">${esc(x.line)}</div>`).join('') : ''}</div>`).join('')}</div>
   ${st.tep && st.tep.rows ? `<div class="cap">${esc(S.tep_title)}</div><div class="tw"><table class="tt"><thead><tr><th></th>${st.tep.rows.map(r => `<th>${esc((V.scenarios.find(s => s.key === r.key) || {}).short || r.key)}</th>`).join('')}</tr></thead><tbody>
     ${[['КИТ', 'kit', 1], ['Квартиры, м²', 'flats_m2'], ['Коммерция, м²', 'commercial_m2'], ['Квартир', 'flats_count'], ['Машино-мест', 'parking']].filter(([, k]) => st.tep.rows.some(r => r[k] != null)).map(([l, k, d]) => `<tr><td>${l}</td>${st.tep.rows.map(r => `<td>${r[k] != null ? nf(r[k], d || 0) : NA}</td>`).join('')}</tr>`).join('')}</tbody></table></div>` : ''}
   ${sysParams(st)}
@@ -701,6 +705,7 @@ function sysCard(st) {
 }
 function sysCardWire(st) {
   const V = st.valuation;
+  document.querySelectorAll('.sy-above [data-code]').forEach(c => { const f = document.querySelector(`.sy-flag[data-code="${c.dataset.code}"]`); if (f) c.onclick = () => { f.scrollIntoView({behavior: 'smooth', block: 'center'}); f.classList.add('hl'); setTimeout(() => f.classList.remove('hl'), 1500); }; });
   if ($('#sxl')) $('#sxl').onclick = () => dlXlsx(V.finmodel_xlsx);
   $('#spdf').onclick = () => sysReport(st);
   if ($('#sdet')) $('#sdet').onclick = () => { PARCEL = C.projects[st.project]; TAB = 'price'; render(); scrollTo(0, 0); };
