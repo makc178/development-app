@@ -1,11 +1,11 @@
 'use strict';
 /* Development App — код без данных. Данные: закрытый репозиторий DATA_REPO, ключ GitHub хранится на устройстве, зашифрован PIN-кодом. */
-const DATA_REPO = 'makc178/claims-registry-data', DATA_FILE = 'devapp/bundle.json', PIN_BLOB = {"v": 1, "bv": 1792053215, "kdf": "PBKDF2-SHA256", "iterations": 600000, "salt": "tedIPmk0N0W7+3YtDEkrFg==", "iv": "/Y8aHZ91V/3ZfZYI", "ct": "xsjjmC3ocIe6P6XDJ3a9bD2CWq6cJED6YOdMIPnLE/l8nSkPC9ReQG5I9+r12uEhpmHE6oNZv6dyTAx7+UtxK8M6CwdGU5jxyuWXgB0H40anZtQcnVX+ijoAqhLVvEMV6Hb+lrwgjAagGEqM3P4MNJvRolo="}, LT = {"bg": "#14213D", "digit": "#EFE6D2", "border": "#C9A45C", "dot": "#C9A45C", "glass": "rgba(255,255,255,.06)", "glass_active": "rgba(201,164,92,.18)", "button_px": 72, "logo_text": "MI Development", "error": "#E8A39B", "logo_src": "logo.svg", "logo_w": 96, "logo_gap": 32, "mark_h": 72, "wm_gap": 16, "wm1": "MI DEVELOPMENT", "wm1_font": "MI Bodoni", "wm1_px": 22, "wm1_w": 500, "wm1_ls": "0.2em", "wm1_color": "#EFE6D2", "wm2_gap": 6, "wm2": "Development App", "wm2_font": "MI Inter", "wm2_px": 11, "wm2_ls": "0.3em", "wm2_color": "#C9A45C"};
+const DATA_REPO = 'makc178/claims-registry-data', DATA_FILE = 'devapp/bundle.json', PIN_BLOB = {"v": 1, "kind": "write", "bv": 1792074386, "kdf": "PBKDF2-SHA256", "iterations": 600000, "salt": "bJkA7z3F/ZZeLJsEzZSlfg==", "iv": "bfdtwmvlooErLia6", "ct": "KKLbIviGfzxY+C6EnUU5conipmTrPQOG2NV75zU5X+SOpeylzOleQNgMH8f5iyx2Qg9ne7la6Qu5SgTsKJ4yLhIYkxG3FiDo/mZbckm3lMXrdI+71/jpvGo2Lfxwdt9AODzmFgaUUfpv1h2tqeZRIrFiw+o="}, LT = {"bg": "#14213D", "digit": "#EFE6D2", "border": "#C9A45C", "dot": "#C9A45C", "glass": "rgba(255,255,255,.06)", "glass_active": "rgba(201,164,92,.18)", "button_px": 72, "logo_text": "MI Development", "error": "#E8A39B", "logo_src": "logo.svg", "logo_w": 96, "logo_gap": 32, "mark_h": 72, "wm_gap": 16, "wm1": "MI DEVELOPMENT", "wm1_font": "MI Bodoni", "wm1_px": 22, "wm1_w": 500, "wm1_ls": "0.2em", "wm1_color": "#EFE6D2", "wm2_gap": 6, "wm2": "Development App", "wm2_font": "MI Inter", "wm2_px": 11, "wm2_ls": "0.3em", "wm2_color": "#C9A45C"};
 const $ = s => document.querySelector(s), A = $('#app');
 const esc = s => String(s ?? '').replace(/[&<>"']/g, c => ({'&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;'}[c]));
 const nf = (n, d = 0) => (n == null || !isFinite(n)) ? '—' : n.toLocaleString('ru-RU', {maximumFractionDigits: d, minimumFractionDigits: 0});
 const ICON = 'icon.svg';
-let B = null, C = null, TAB = 'price', F = {group: '', organ: '', year: '', tag: '', q: ''}, TEPI = {region: 'СПб', scen: 'po_pravu', cls: 'комфорт', zone: 'обычная', lo: 'А', urv: false}, LAW = {view: 'rules', region: ''};
+let B = null, C = null, TAB = 'home', F = {group: '', organ: '', year: '', tag: '', q: ''}, TEPI = {region: 'СПб', scen: 'po_pravu', cls: 'комфорт', zone: 'обычная', lo: 'А', urv: false}, LAW = {view: 'rules', region: ''};
 
 /* ---------- крипто ---------- */
 const te = new TextEncoder(), td = new TextDecoder();
@@ -54,7 +54,7 @@ async function key(k) {
 async function load(tok) {
   const r = await fetch(`https://api.github.com/repos/${DATA_REPO}/contents/${DATA_FILE}?ref=main`, {headers: ghH(tok), cache: 'no-store'});
   if (!r.ok) throw new Error(r.status === 404 ? 'Данные не найдены' : 'GitHub ' + r.status);
-  B = await r.json(); C = B.config; document.body.style.background = ''; render();
+  B = await r.json(); C = B.config; TOKEN = tok; await sysLoadIndex(); document.body.style.background = ''; render();
 }
 
 /* ---------- правила групп (из конфига) ---------- */
@@ -92,15 +92,16 @@ const adrMiss = () => `<span class="adn">${esc(C.address_missing)}</span>`;
 const approvedLater = d => (d.rres || '').toLowerCase().startsWith(C.reconsidered_approved_prefix);
 
 /* ---------- экраны ---------- */
-const TABS = [['price', 'Оценка', '<path d="M4 19h16M7 16V9M12 16V5M17 16v-4"/>'], ['parcel', 'Участок', '<path d="M4 7l8-4 8 4v10l-8 4-8-4z"/><path d="M4 7l8 4 8-4M12 11v10"/>'], ['grk', 'Решения', '<path d="M5 3h10l4 4v14H5z"/><path d="M15 3v4h4M8 12h8M8 16h8M8 8h4"/>'],
+const TABS = [['home', 'Оценка', '<path d="M4 19h16M7 16V9M12 16V5M17 16v-4"/>'], ['price', 'Разбор', '', 'sub'], ['parcel', 'Участок', '', 'sub'], ['grk', 'Решения', '<path d="M5 3h10l4 4v14H5z"/><path d="M15 3v4h4M8 12h8M8 16h8M8 8h4"/>'],
   ['tep', 'ТЭП', '<rect x="4" y="3" width="16" height="18" rx="2"/><path d="M8 7h8M8 11h2M12 11h2M16 11h0M8 15h2M12 15h2M8 18h2M12 18h2M16 15v3"/>'],
   ['law', 'Право', '<path d="M12 3v18M5 21h14M6 7h12M6 7l-3 7h6zM18 7l-3 7h6z"/>'], ['pdf', 'PDF', '<path d="M6 3h9l4 4v14H6z"/><path d="M15 3v4h4"/>', 'desk']];
 function render() {
-  const title = {price: 'Оценка', parcel: 'Участок', grk: 'Решения ГРК', tep: 'Расчёт ТЭП', law: 'Правовые заметки'}[TAB];
-  A.innerHTML = `<div class="nav">${LOGO_H ? `<img src="${LOGO_H}" alt="MI Development" style="height:26px;width:auto">` : `<img src="${ICON}" alt="">`}<span class="t">${title}</span><nav class="dtabs">${TABS.map(([k, l]) => `<button data-t="${k}" class="${TAB === k ? 'on' : ''}">${l}</button>`).join('')}</nav></div><main id="m"></main>
+  const title = {home: C.system.title, price: 'Подробный разбор', parcel: 'Участок', grk: 'Решения ГРК', tep: 'Расчёт ТЭП', law: 'Правовые заметки'}[TAB];
+  A.innerHTML = `<div class="nav">${LOGO_H ? `<img src="${LOGO_H}" alt="MI Development" style="height:26px;width:auto">` : `<img src="${ICON}" alt="">`}<span class="t">${title}</span>${TABS.find(t => t[0] === TAB && t[3] === 'sub') ? '<button class="sy-navb" id="navb">‹</button>' : ''}<nav class="dtabs">${TABS.filter(t => t[3] !== 'sub').map(([k, l]) => `<button data-t="${k}" class="${TAB === k ? 'on' : ''}">${l}</button>`).join('')}</nav></div><main id="m"></main>
   <nav class="tabs">${TABS.filter(t => !t[3]).map(([k, l, p]) => `<button data-t="${k}" class="${TAB === k ? 'on' : ''}"><svg viewBox="0 0 24 24">${p}</svg>${l}</button>`).join('')}</nav><div id="sh"></div>`;
-  A.querySelectorAll('.tabs button,.dtabs button').forEach(b => b.onclick = () => { if (b.dataset.t === 'pdf') { const p = PARCEL || C.projects[0]; if (p) report(p); return; } TAB = b.dataset.t; render(); scrollTo(0, 0); });
-  ({price: viewPrice, parcel: viewParcel, grk: viewGrk, tep: viewTep, law: viewLaw})[TAB]();
+  A.querySelectorAll('.tabs button,.dtabs button').forEach(b => b.onclick = () => { if (b.dataset.t === 'pdf') { if (TAB === 'home' && SY.st && SY.st.valuation) return sysReport(SY.st); const p = PARCEL || C.projects[0]; if (p) report(p); return; } if (b.dataset.t === 'home' && TAB === 'home') { SY.view = 'home'; SY.id = null; } TAB = b.dataset.t; render(); scrollTo(0, 0); });
+  if ($('#navb')) $('#navb').onclick = () => { TAB = TAB === 'parcel' ? 'price' : 'home'; render(); scrollTo(0, 0); };
+  ({home: viewHome, price: viewPrice, parcel: viewParcel, grk: viewGrk, tep: viewTep, law: viewLaw})[TAB]();
 }
 
 function filtered(skipGroup) {
@@ -518,4 +519,209 @@ function lawRules() {
 function lawNotes() {
   $('#lb').innerHTML = B.legal_notes.filter(n => n.html.trim()).map(n => `<details class="card note"><summary>${esc(n.title)}</summary><div class="md">${n.html}</div></details>`).join('');
 }
+/* ---------- система оценки: 1) ввод + «Мои запросы», 2) ход расчёта, 3) карточка участка ----------
+   Разметка — классы sy-*, стили — в index.html (блок «система»). Тексты и сроки — config.system. Данные — закрытый репозиторий:
+   запрос пишет приложение (devapp/requests/<id>/request.json + files/), статус и результат кладёт watch.py (status.json, finmodel.xlsx, requests_index.json). */
+const SY = {view: 'home', id: null, st: null, idx: [], timer: null};
+const SC = () => C.system;
+const PEND = 'devapp_pending_v1', pendGet = () => JSON.parse(localStorage.getItem(PEND) || '{}');
+const pendSet = o => localStorage.setItem(PEND, JSON.stringify(o));
+const ghJ = t => ({Authorization: 'Bearer ' + t, Accept: 'application/vnd.github+json', 'X-GitHub-Api-Version': '2022-11-28'});
+const tm = s => s ? new Date(s).toLocaleTimeString('ru-RU', {hour: '2-digit', minute: '2-digit'}) : '';
+const mlnS = v => v == null ? '—' : nf(v / 1e6, 1) + ' млн ₽';
+const altTxt = a => a.text ? esc(a.text[0].toUpperCase() + a.text.slice(1)) : `${esc(a.label)}: <b>${mlnS(a.price)}</b>`;
+const thS = v => v == null ? '' : nf(v / 1000, 1) + ' тыс. ₽/м²';
+async function ghGet(path) {
+  const r = await fetch(`https://api.github.com/repos/${DATA_REPO}/contents/${path}?ref=main&t=${Date.now()}`, {headers: ghH(TOKEN), cache: 'no-store'});
+  if (r.status === 404) return null; if (!r.ok) throw new Error('GitHub ' + r.status); return r.json();
+}
+async function ghPutB64(path, b64c, msg) {
+  let sha; const h = await fetch(`https://api.github.com/repos/${DATA_REPO}/contents/${path}?ref=main&t=${Date.now()}`, {headers: ghJ(TOKEN), cache: 'no-store'});
+  if (h.ok) sha = (await h.json()).sha;
+  const r = await fetch(`https://api.github.com/repos/${DATA_REPO}/contents/${path}`, {method: 'PUT', headers: {...ghJ(TOKEN), 'Content-Type': 'application/json'}, body: JSON.stringify({message: msg, content: b64c, branch: 'main', ...(sha ? {sha} : {})})});
+  if (!r.ok) throw new Error('GitHub ' + r.status);
+}
+const b64u = s => { const u = te.encode(s); let o = ''; for (let i = 0; i < u.length; i += 0x8000) o += String.fromCharCode(...u.subarray(i, i + 0x8000)); return btoa(o); };
+const fileB64 = f => new Promise((ok, no) => { const r = new FileReader(); r.onload = () => ok(String(r.result).split(',')[1]); r.onerror = no; r.readAsDataURL(f); });
+async function sysLoadIndex() { try { const j = await ghGet(SC().index_file); SY.idx = (j && j.requests) || []; } catch (e) { SY.idx = SY.idx || []; } }
+
+/* оставшееся время: КГА → (ТЭП ‖ правовая проверка) → оценка */
+function sysEta(steps) {
+  const S = SC(), now = Date.now(), m = {};
+  for (const d of S.steps) { const s = (steps || []).find(x => x.id === d.id) || {state: 'wait'};
+    m[d.id] = s.state === 'done' ? 0 : s.eta_at ? Math.max(S.min_left, Math.round((new Date(s.eta_at) - now) / 60000)) : (s.eta_min || d.eta_min); }
+  const total = Math.max((m.kga || 0) + (m.tep || 0), m.legal || 0) + (m.valuation || 0);
+  return {total, at: new Date(now + total * 60000)};
+}
+const etaTxt = steps => { const e = sysEta(steps); return e.total ? `~${e.total < 60 ? e.total + ' мин' : nf(e.total / 60, 1) + ' ч'} · ${SC().eta_done_by.replace('{t}', tm(e.at))}` : ''; };
+function pendStatus(p) {  // запрос отправлен, watch.py его ещё не принял
+  return {id: p.id, title: p.title, created: p.created, state: 'work', pending: true, request: p,
+    steps: SC().steps.map(d => ({id: d.id, title: d.title, who: d.who, state: 'wait', eta_min: d.eta_min})), parcel: {cad: p.cad, address: p.address, area_m2: p.area_m2, vri: p.vri, rights: p.rights}};
+}
+function sysItems() {
+  const P = pendGet(), ids = new Set(SY.idx.map(x => x.id));
+  Object.keys(P).forEach(k => { if (ids.has(k) && (SY.idx.find(x => x.id === k).changed_at || '') >= P[k].created) { delete P[k]; } }); pendSet(P);
+  return Object.values(P).filter(p => !ids.has(p.id)).map(p => ({...pendStatus(p), pending: true})).concat(SY.idx);
+}
+
+/* ---------- экран 1: ввод участка и список запросов ---------- */
+function viewHome() {
+  clearInterval(SY.timer); SY.timer = null;
+  if (SY.view === 'req' && SY.id) return sysOpen(SY.id, true);
+  const S = SC(), F = S.fields, M = $('#m');
+  M.innerHTML = `<section class="sy-input"><h1>${esc(S.title)}</h1><div class="sub">${esc(S.sub)}</div>
+  <div class="sy-q"><input class="inp sy-field" id="sq" placeholder="${esc(S.placeholder)}" autocomplete="off"><button class="btn sy-go" id="sgo">${esc(S.button)}</button></div><div class="err" id="serr"></div>
+  <details class="card sy-more" id="smore"><summary>${esc(S.refine)}</summary><div class="sm mu">${esc(S.refine_hint)}</div>
+   <div class="list sy-form"><div class="li"><span>${esc(F.area)}</span><span><input id="sa" inputmode="decimal" placeholder="из ЕГРН"></span></div>
+   <div class="li"><span>${esc(F.vri)}</span><span><select id="sv">${S.vri_options.map(o => `<option value="${esc(o)}">${esc(o || '—')}</option>`).join('')}</select></span></div>
+   <div class="li"><span>${esc(F.rights)}</span><span class="seg sy-seg" id="sr">${S.rights_options.map(([v, l], i) => `<button type="button" data-v="${esc(v)}" class="${i ? '' : 'on'}">${esc(l)}</button>`).join('')}</span></div>
+   <div class="li"><span>${esc(F.egrn)}</span><span><input type="file" id="fe" accept=".pdf,.txt,.json,.xml,.jpg,.png"></span></div>
+   <div class="li"><span>${esc(F.gpzu)}</span><span><input type="file" id="fg" accept=".pdf,.txt,.json,.xml,.jpg,.png"></span></div>
+   <div class="li sy-note"><span>${esc(F.note)}</span><span><textarea id="sn" rows="2"></textarea></span></div></div></details></section>
+  <div class="cap">${esc(S.list_title)}</div><div id="sl" class="sy-list"></div>`;
+  $('#sr').onclick = e => { const b = e.target.closest('button'); if (b) $('#sr').querySelectorAll('button').forEach(x => x.classList.toggle('on', x === b)); };
+  $('#sgo').onclick = sysSubmit; $('#sq').onkeydown = e => e.key === 'Enter' && sysSubmit();
+  sysList(); sysLoadIndex().then(() => { if (TAB === 'home' && SY.view === 'home') sysList(); });
+  SY.timer = setInterval(() => { if (TAB !== 'home' || SY.view !== 'home') return; sysLoadIndex().then(sysList); }, SC().poll_sec * 1000);
+}
+function stepNow(it) {  // «Шаг N из 4 · КГА»
+  const st = it.steps || [], i = st.findIndex(s => s.state !== 'done'), S = SC().steps;
+  if (i < 0) return ''; const cur = st.filter(s => s.state === 'work' || s.state === 'failed').map(s => (S.find(d => d.id === s.id) || {}).title || s.id);
+  return `Шаг ${st.filter(s => s.state === 'done').length + 1} из ${S.length} · ${esc(cur.join(' и ') || (S.find(d => d.id === st[i].id) || {}).title || '')}`;
+}
+function sysList() {
+  const L = sysItems(), S = SC(), el = $('#sl'); if (!el) return;
+  el.innerHTML = L.length ? L.map(it => `<div class="card dc sy-item s-${it.pending ? 'new' : it.state}" data-id="${esc(it.id)}"><div class="top">
+    <span class="chip sy-cap s-${it.pending ? 'new' : it.state}"><i></i>${esc(S.req_state[it.pending ? 'new' : it.state] || it.state)}</span>${it.import ? `<span class="chip">${esc(S.import_tag)}</span>` : ''}<span class="sm mu" style="margin-left:auto">${esc(it.created ? new Date(it.created).toLocaleDateString('ru-RU') : '')}</span></div>
+    <h3>${esc(it.cad || it.title)}</h3><div class="dev">${esc(it.address || '')}${it.area_m2 ? ' · ' + nf(+it.area_m2) + ' м²' : ''}</div>
+    <div class="sy-ip">${it.state === 'done' && !it.pending ? `<b>${mlnS(it.base_price)}</b> <span class="mu">${thS(it.base_per_m2)}</span>` : `<span>${stepNow(it)}</span> <span class="mu">${etaTxt(it.steps)}</span>`}</div></div>`).join('')
+    : `<div class="card empty">${esc(S.list_empty)}</div>`;
+  el.querySelectorAll('.sy-item').forEach(c => c.onclick = () => sysOpen(c.dataset.id));
+}
+async function sysSubmit() {
+  const S = SC(), q = $('#sq').value.trim(), err = $('#serr'); err.textContent = '';
+  const isCad = new RegExp(C.cad_pattern).test(q);
+  if (!isCad && q.length < S.addr_min) return err.textContent = S.err_short;
+  const ex = SY.idx.find(x => isCad && x.cad === q);
+  if (ex && ex.state !== 'done') return sysOpen(ex.id);
+  if (ex && ex.state === 'done' && !confirm(S.exists_done)) return sysOpen(ex.id);
+  const now = new Date(), pad = n => String(n).padStart(2, '0');
+  const id = isCad ? q.replace(/:/g, '-') : `adr-${now.getFullYear()}${pad(now.getMonth() + 1)}${pad(now.getDate())}-${pad(now.getHours())}${pad(now.getMinutes())}${pad(now.getSeconds())}`;
+  const files = [], btn = $('#sgo'); btn.disabled = true; err.textContent = S.sending;
+  try {
+    for (const [inp, kind] of [['#fe', 'egrn'], ['#fg', 'gpzu']]) {
+      const f = $(inp) && $(inp).files[0]; if (!f) continue;
+      if (f.size > S.max_file_mb * 1048576) throw new Error(S.err_file.replace('{mb}', S.max_file_mb));
+      const nm = kind + '_' + f.name.replace(/[^0-9A-Za-zА-Яа-яЁё._-]+/g, '_').slice(-80);
+      await ghPutB64(`${S.requests_dir}/${id}/files/${nm}`, await fileB64(f), 'devapp: файл запроса'); files.push({kind, name: f.name, path: 'files/' + nm});
+    }
+    const off = -now.getTimezoneOffset(), tz = (off >= 0 ? '+' : '-') + pad(Math.floor(Math.abs(off) / 60)) + ':' + pad(Math.abs(off) % 60);
+    const created = `${now.getFullYear()}-${pad(now.getMonth() + 1)}-${pad(now.getDate())}T${pad(now.getHours())}:${pad(now.getMinutes())}:${pad(now.getSeconds())}${tz}`;
+    const area = num($('#sa').value), rq = {id, cad: isCad ? q : '', address: isCad ? '' : q, area_m2: area || null, vri: $('#sv').value || '', rights: ($('#sr .on') || {}).dataset?.v || '',
+      note: $('#sn').value.trim(), files, created, source: 'app'};
+    await ghPutB64(`${S.requests_dir}/${id}/request.json`, b64u(JSON.stringify(rq, null, 1)), 'devapp: запрос ' + id);
+    const P = pendGet(); P[id] = {...rq, title: q}; pendSet(P); err.textContent = '';
+    sysOpen(id);
+  } catch (e) { err.textContent = S.err_send.replace('{e}', e.message); } finally { btn.disabled = false; }
+}
+
+/* ---------- экраны 2 и 3: ход расчёта и карточка ---------- */
+async function sysOpen(id, keep) {
+  SY.view = 'req'; SY.id = id; clearInterval(SY.timer);
+  const it = sysItems().find(x => x.id === id); if (!keep || !SY.st || SY.st.id !== id) SY.st = it && it.pending ? it : (it ? {...it, steps: it.steps || []} : null);
+  sysDraw(); await sysRefresh();
+  SY.timer = setInterval(() => { if (TAB !== 'home' || SY.view !== 'req') return; if (!SY.st || SY.st.state !== 'done') sysRefresh(); }, SC().poll_sec * 1000);
+}
+async function sysRefresh() {
+  const id = SY.id; let st = null;
+  try { st = await ghGet(`${SC().requests_dir}/${id}/status.json`); } catch (e) { }
+  if (SY.id !== id) return;
+  const P = pendGet()[id];
+  if (st && (!P || (st.changed_at || '') >= P.created)) SY.st = st; else if (P) SY.st = pendStatus(P);
+  if (TAB === 'home' && SY.view === 'req') sysDraw();
+}
+function sysDraw() {
+  const M = $('#m'), st = SY.st, S = SC(); if (!M) return;
+  if (!st) { M.innerHTML = `<button class="sy-back" id="sb">‹ ${esc(S.back)}</button><div class="card empty">Загрузка…</div>`; $('#sb').onclick = sysBack; return; }
+  const p = st.parcel || {}, done = st.state === 'done' && st.valuation;
+  M.innerHTML = `<button class="sy-back" id="sb">‹ ${esc(S.back)}</button>
+  <section class="sy-head"><div class="sm mu">${esc(p.address || st.request?.address || '')}</div><h1 class="sy-cad">${esc(p.cad || st.title)}</h1>
+   <div class="chips"><span class="chip sy-cap s-${st.pending ? 'new' : st.state}"><i></i>${esc(S.req_state[st.pending ? 'new' : st.state])}</span>${st.import ? `<span class="chip">${esc(S.import_tag)}</span>` : ''}${p.area_m2 ? `<span class="chip">${nf(+p.area_m2)} м²</span>` : ''}${p.vri ? `<span class="chip">${esc(String(p.vri).slice(0, 40))}</span>` : ''}</div></section>
+  ${done ? sysCard(st) + `<details class="card sy-prog-d"><summary>${esc(S.progress_title)}</summary>${sysSteps(st)}</details>` : `<div class="cap">${esc(S.progress_title)}</div>${sysSteps(st)}${sysParams(st)}`}`;
+  $('#sb').onclick = sysBack;
+  if (done) sysCardWire(st);
+}
+function sysBack() { SY.view = 'home'; SY.id = null; SY.st = null; viewHome(); scrollTo(0, 0); }
+function sysSteps(st) {
+  const S = SC(), L = S.state_labels, eta = st.state !== 'done' ? etaTxt(st.steps) : '';
+  const done = (st.steps || []).filter(s => s.state === 'done').length;
+  return `<div class="card sy-steps">${eta ? `<div class="sy-eta"><span class="mu">${esc(S.eta_label)}</span> <b>${esc(eta)}</b></div><div class="sy-bar"><i style="width:${done / S.steps.length * 100}%"></i></div>` : ''}
+  ${S.steps.map((d, i) => { const s = (st.steps || []).find(x => x.id === d.id) || {state: 'wait'};
+    const sub = s.state === 'done' ? `${L.done}${s.done_at ? ' ' + tm(s.done_at) : ''}${s.note ? ' · ' + esc(s.note) : ''}`
+      : s.state === 'work' ? `${L.work}${s.since ? ' с ' + tm(s.since) : ''} · ${esc(s.who || d.who)}${s.eta_at ? ' · ~до ' + tm(s.eta_at) : ' · ~' + (s.eta_min || d.eta_min) + ' мин'}`
+      : s.state === 'failed' ? `${L.failed}: ${esc(s.error || '')}<br>${esc(S.failed_note.replace('{who}', d.who))}` : `${L.wait} · ${esc(d.desc)}`;
+    return `<div class="sy-st s-${s.state}"><span class="sy-n">${s.state === 'done' ? '✓' : s.state === 'failed' ? '!' : i + 1}</span><div><b>${esc(d.title)}</b>${d.tag ? ` <span class="chip sy-tag">${esc(d.tag)}</span>` : ''}<div class="sm mu">${sub}</div></div></div>`; }).join('')}</div>`;
+}
+const mkCap = m => m ? ` <span class="sy-mk ${m === SC().mark_amber ? 'amb' : ''}">${esc(m)}</span>` : '';
+function sysParams(st) {
+  const p = st.parcel || {}, M = p.marks || {}, rows = [['Кадастровый номер', p.cad], ['Адрес', p.address, 'address'], ['Площадь', p.area_m2 ? nf(+p.area_m2) + ' м²' : '', 'area_m2'], ['Категория', p.category, 'category'], ['ВРИ', p.vri, 'vri'], ['Зона', p.zone, 'zone'], ['Права', p.rights, 'rights'], ['ГПЗУ', p.gpzu], ['Кадастровая стоимость', p.cad_value_rub ? mlnS(+p.cad_value_rub) : '', 'cad_value_rub']].filter(r => r[1]);
+  return rows.length ? `<div class="cap">${esc(SC().params_title)}</div><div class="list kv sy-params">${rows.map(([k, v, f]) => `<div class="li"><span>${esc(k)}</span><span>${esc(v)}${mkCap(M[f])}</span></div>`).join('')}</div>` : '';
+}
+function sysScen(V) {  // база, затем по убыванию цены, недоступные в конце
+  return [...V.scenarios].sort((a, b) => (b.base - a.base) || ((b.available ? 1 : 0) - (a.available ? 1 : 0)) || ((b.price || 0) - (a.price || 0)));
+}
+function sysFlags(st) {  // риски — только из legal.json → price_flags; плюс строка о правах
+  const Lg = st.legal || {}, rows = [];
+  if (Lg.rights) rows.push({color: Lg.rights === 'аренда' ? 'жёлтый' : 'зелёный', title: Lg.rights[0].toUpperCase() + Lg.rights.slice(1), text: Lg.holder_type || ''});
+  (Lg.price_flags || []).forEach(f => rows.push({color: ({red: 'красный', yellow: 'жёлтый', green: 'зелёный'})[f.light] || f.light || 'жёлтый', title: f.text, text: f.source || '', type: f.type}));
+  if (!(Lg.price_flags || []).length) rows.push({color: 'зелёный', title: SC().flags_none, text: ''});
+  return rows;
+}
+function sysCard(st) {
+  const S = SC(), V = st.valuation, b = V.scenarios.find(s => s.base) || V.scenarios.find(s => s.available) || {}, ff = sysFlags(st);
+  const rng = V.range && V.range_prices ? `<div class="sy-range"><span>${mlnS(V.range[0])} – ${mlnS(V.range[V.range.length - 1])}</span><div class="sm mu">${esc(S.range_label.replace('{a}', V.range_prices[0]).replace('{b}', V.range_prices[V.range_prices.length - 1]))}${V.area_m2 ? ' · ' + thS(V.range[0] / V.area_m2) + ' – ' + thS(V.range[V.range.length - 1] / V.area_m2) : ''}</div></div>` : '';
+  const scale = V.range && b.price ? (() => { const lo = Math.min(V.range[0], b.price), hi = Math.max(V.range[V.range.length - 1], b.price), pos = hi > lo ? (b.price - lo) / (hi - lo) * 100 : 50;
+    return `<div class="sy-scale"><i style="left:${pos}%"></i></div>`; })() : '';
+  const alts = (b.alt || []).map((a, i) => `<div class="sy-alt" id="alt${i}" data-ft="${esc((a.flag_types || []).join(' '))}"><i></i><span>${altTxt(a)}</span></div>`).join('');
+  const tiles = [['Выручка', b.rev], ['Затраты', b.costs], ['Прибыль', b.profit]];
+  return `<section class="card sy-price"><div class="cap" style="margin-top:0">${esc(S.price_cap)} · ${esc(b.short || '')}</div>
+   <div class="sy-pv">${mlnS(b.price)}${mkCap(b.mark)}</div>${b.urv ? `<div class="sy-urv"><span class="sy-mk amb" style="margin:0 6px 0 0">${esc(S.urv_chip)}</span>${esc(S.urv_line)}</div>` : ''}${b.price_note ? `<div class="sm mu sy-pnote">${esc(b.price_note)}</div>` : ''}
+   <div class="sy-pm">${thS(b.per_m2)} участка${b.vs_cad ? ' · ' + nf(b.vs_cad, 2) + ' кадастровой' : ''}</div>${alts}${scale}${rng}
+   <div class="sy-tiles">${tiles.map(([l, v]) => `<div><span class="mu sm">${l}</span><b>${v != null ? nf(v / 1e6) : '—'}</b><em class="sm mu">млн ₽</em></div>`).join('')}</div></section>
+  <div class="cap">${esc(S.flags_title)}</div><div class="list sy-flags">${ff.map(r => `<div class="li sy-flag" data-type="${esc(r.type || '')}"><span style="display:flex;gap:10px;align-items:flex-start"><i class="dot8" style="background:${C.traffic[r.color] || '#AEAEB2'};margin-top:6px"></i><span>${esc(r.title)}${r.text ? `<div class="sm mu">${esc(r.text)}</div>` : ''}</span></span></div>`).join('')}</div>
+  <div class="cap">${esc(S.scen_title)}</div><div class="list sy-scen">${sysScen(V).map(s => `<div class="li sy-sc ${s.base ? 'base' : ''} ${s.available ? '' : 'off'}"><span><span class="sy-sct">${dotL(s.light)}<b>${esc(s.short)}</b>${s.base ? ` <span class="chip sy-tag">${esc(S.base_chip)}</span>` : ''}${!s.available ? ` <span class="chip sy-tag off">${esc(S.unavailable)}</span>` : ''}${s.urv ? ` <span class="sy-mk amb">${esc(S.urv_chip)}</span>` : ''}</span>
+    <div class="sm mu">${[s.kit ? 'КИТ ' + nf(s.kit, 1) : '', s.flats_m2 ? 'квартиры ' + nf(s.flats_m2) + ' м²' : ''].filter(Boolean).join(' · ')}${s.cond ? `<br><span class="sy-cond">${esc(s.cond)}</span>` : ''}${s.flag ? `<br>${esc(s.flag)}` : ''}</div></span>
+    <span class="sy-scp">${s.available ? mlnS(s.price) : '—'}<div class="sm mu">${s.available ? thS(s.per_m2) : ''}</div>${s.available && s.mark ? `<div>${mkCap(s.mark)}</div>` : ''}</span>${s.urv ? `<div class="sy-urv">${esc(S.urv_line)}</div>` : ''}</div>`).join('')}</div>
+  ${st.tep && st.tep.rows ? `<div class="cap">${esc(S.tep_title)}</div><div class="tw"><table class="tt"><thead><tr><th></th>${st.tep.rows.map(r => `<th>${esc((V.scenarios.find(s => s.key === r.key) || {}).short || r.key)}</th>`).join('')}</tr></thead><tbody>
+    ${[['КИТ', 'kit', 1], ['Квартиры, м²', 'flats_m2'], ['Коммерция, м²', 'commercial_m2'], ['Квартир', 'flats_count'], ['Машино-мест', 'parking']].filter(([, k]) => st.tep.rows.some(r => r[k] != null)).map(([l, k, d]) => `<tr><td>${l}</td>${st.tep.rows.map(r => `<td>${r[k] != null ? nf(r[k], d || 0) : NA}</td>`).join('')}</tr>`).join('')}</tbody></table></div>` : ''}
+  ${sysParams(st)}
+  ${V.finmodel ? `<details class="card fmd"><summary>${esc(S.fm_title)}</summary>${fmTable({finmodel: V.finmodel, list: [], bonus_pct: null})}</details>` : ''}
+  <div class="sm mu" style="margin:8px 4px 0">${esc(V.status || '')}${V.date ? ' · Оценщик, ' + esc(V.date) : ''}${V.method ? '. ' + esc(V.method) : ''}</div>
+  <div class="sy-btns"><button class="btn" id="spdf">${esc(S.btn_pdf)}</button>${V.finmodel_xlsx ? `<button class="btn o" id="sxl">${esc(S.btn_xlsx)}</button>` : ''}${st.project != null && C.projects[st.project] ? `<button class="btn o" id="sdet">${esc(S.btn_detail)}</button>` : ''}</div>`;
+}
+function sysCardWire(st) {
+  const V = st.valuation;
+  if ($('#sxl')) $('#sxl').onclick = () => dlXlsx(V.finmodel_xlsx);
+  $('#spdf').onclick = () => sysReport(st);
+  if ($('#sdet')) $('#sdet').onclick = () => { PARCEL = C.projects[st.project]; TAB = 'price'; render(); scrollTo(0, 0); };
+  document.querySelectorAll('.sy-flag').forEach(f => { const t = f.dataset.type; const a = t && [...document.querySelectorAll('.sy-alt')].find(x => x.dataset.ft.split(' ').includes(t));
+    if (a) { f.classList.add('lr'); f.onclick = () => { a.scrollIntoView({behavior: 'smooth', block: 'center'}); a.classList.add('hl'); setTimeout(() => a.classList.remove('hl'), 1500); }; } });
+}
+function sysReport(st, opt = {}) {
+  const S = SC(), V = st.valuation, p = st.parcel || {}, b = V.scenarios.find(s => s.base) || {}, now = new Date().toLocaleDateString('ru-RU'), ff = sysFlags(st);
+  const pages = [
+   `<div class="cov">${LOGO_H ? `<img src="logo-h-dark.svg" alt="MI Development" style="height:40px;margin-bottom:28px">` : ''}<div class="sm mu">${esc(S.report_title)}</div><div class="pc">${esc(p.cad || st.title)}</div><div class="pa">${esc(p.address || '')}</div><div class="mu">${now}</div></div>`,
+   `<h2>Сводка</h2><h3>${esc(S.price_cap)} · ${esc(b.short || '')}</h3><p><b>${mlnS(b.price)}</b>${b.price_note ? ' — ' + esc(b.price_note) : ''} · ${thS(b.per_m2)} участка</p>${(b.alt || []).map(a => `<p>${altTxt(a)}</p>`).join('')}
+    <h3>${esc(S.scen_title)}</h3><table class="tt"><thead><tr><th>Сценарий</th><th>Цена</th><th>за м²</th></tr></thead><tbody>${sysScen(V).map(s => `<tr><td>${dotL(s.light)} ${esc(s.short)}${s.base ? ' · база' : ''}</td><td>${s.available ? mlnS(s.price) : esc(S.unavailable)}</td><td>${s.available ? thS(s.per_m2) : '—'}</td></tr>`).join('')}</tbody></table>
+    <h3>${esc(S.flags_title)}</h3><table class="tt kv2"><tbody>${ff.map(r => `<tr><td style="width:20px"><i class="dot8" style="background:${C.traffic[r.color] || '#AEAEB2'}"></i></td><td>${esc(r.title)}${r.text ? ' · ' + esc(r.text) : ''}</td></tr>`).join('')}</tbody></table>`,
+   `<h2>${esc(S.params_title)}</h2><table class="tt kv2"><tbody>${[['Адрес', p.address], ['Площадь', p.area_m2 ? nf(+p.area_m2) + ' м²' : ''], ['Категория', p.category], ['ВРИ', p.vri], ['Зона', p.zone], ['Права', p.rights], ['ГПЗУ', p.gpzu]].filter(r => r[1]).map(([k, v]) => `<tr><td>${esc(k)}</td><td>${esc(v)}</td></tr>`).join('')}</tbody></table>
+    <h2>Финмодель${b.short ? ' · ' + esc(b.short) : ''}</h2><table class="tt"><thead><tr><th>Выручка</th><th>Затраты</th><th>Прибыль</th></tr></thead><tbody><tr>${[b.rev, b.costs, b.profit].map(v => `<td>${mlnS(v)}</td>`).join('')}</tr></tbody></table><p class="sm mu">${esc(V.status || '')}</p>`]
+   .concat(V.finmodel ? [`<h2>Приложение. Базовая финмодель</h2>${fmTable({finmodel: V.finmodel, list: [], bonus_pct: null}, 1)}`] : []);
+  const R = C.report, ft = i => `<div class="pf" style="font-size:${R.footer_px}px;color:${R.footer_color}">${LOGO_H ? `<img src="logo-h-dark.svg" alt="MI Development" style="height:12px">` : `<span class="logo-slot">${esc(R.logo_slot)}</span>`}<span>${i + 1} / ${pages.length}</span></div>`;
+  let el = $('#print'); if (!el) { el = document.createElement('div'); el.id = 'print'; document.body.appendChild(el); }
+  el.innerHTML = pages.map((h, i) => `<section class="pg">${opt.sample ? '<div class="wm">ПРИМЕР</div>' : ''}${h}${ft(i)}</section>`).join('');
+  document.body.classList.add('printing');
+  if (!opt.noPrint) { setTimeout(() => window.print(), 50); window.onafterprint = () => document.body.classList.remove('printing'); }
+}
+
 lockScreen();
